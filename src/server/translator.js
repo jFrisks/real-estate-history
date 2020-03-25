@@ -14,7 +14,8 @@ const translations = {
         "förening": "housingSociety",
         "pris/m²": "pricePerSquareMeter",
         "pris/m2": "pricePerSquareMeter",
-        "upplåtelseform": "tenure"
+        "upplåtelseform": "tenure",
+        "våning": "floor"
     }
 }
 
