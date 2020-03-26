@@ -1,6 +1,20 @@
 const request = require('request')
 const cheerio = require('cheerio')
 const translator = require('./translator')()
+const scraper = require('./scraper')
+
+function scrapeInfo(url, scrapingMethod) {
+    let result = []
+    request(url, async (error, response, html) => {
+        if (!error && response.statusCode === 200) {
+            const $ = cheerio.load(html)
+            //listingLinks = getListingsLink($)
+            result = scrapingMethod($)
+            console.log(result)
+        }
+    })
+    return result
+}
 
 const getListingsLink = ($) => {
     const listings = $('.js-listing-card-link.listing-card')
@@ -12,9 +26,15 @@ const getListingsLink = ($) => {
     return filteredListings
 }
 
-const getListingInfo = async (hemnet_listing_url) => {
-    const listingInfo = await getPageListingInfo(hemnet_listing_url)
-    return listingInfo;
+const getListingsInfo = async (listingsLinks, getSpecificPageInfoMethod) => {
+    const allListingsInfo = await Promise.all(listingsLinks.map(async (link, index) => {
+        //const listingInfo = await getPageListingInfo(link)
+        const listingInfo = await getSpecificPageInfoMethod(link)
+        console.log("Done with one property:", listingInfo)
+        return listingInfo
+    }));
+    //console.log(allListingsInfo)
+    return allListingsInfo;
 }
 
 async function getPageListingInfo(hemnet_listing_url) {
@@ -23,7 +43,7 @@ async function getPageListingInfo(hemnet_listing_url) {
             if (!error && response.statusCode === 200) {
                 const $ = cheerio.load(html)
                 console.log('LOADED DETAILED PAGE for ', hemnet_listing_url)
-                //TODO: get photos, street name, info, price ...
+                //Get text-info
                 const street = $('.property-address__street.qa-property-heading').text()
                 const area = $('.property-address__area').text()
                 const startPrice = $('.property-info__price.qa-property-price').text()
@@ -36,13 +56,17 @@ async function getPageListingInfo(hemnet_listing_url) {
                     const value = $(this).find('.property-attributes-table__value').text().trim().split('\n')[0]
                     tableInfo[titleEnglish] = value
                 })
+                
+                //Combine everything
+                const id = generateID({street, startPrice})
                 const propertyInfo = {
                     "street": street,
                     "area": area,
                     "startPrice": startPrice,
-                    ...tableInfo
+                    ...tableInfo,
                 }
-                resolve(propertyInfo);
+                //DONE
+                resolve({[id]: propertyInfo});
             }else{
                 reject(error)
             }
@@ -50,29 +74,46 @@ async function getPageListingInfo(hemnet_listing_url) {
     }) 
 }
 
-function getListings() {
-    const url = 'https://www.hemnet.se/bostader?location_ids%5B%5D=898741&item_types%5B%5D=bostadsratt&rooms_min=2&living_area_min=30&price_min=1750000&price_max=3500000';
+async function getPageListingImages(listingLinks) {
+    const sc = scraper()
+    await sc.launch()
+    console.log('launched headless scraper')
+    
+    //DO THIS FOR ALL
+    const listingsImage = await getListingsInfo(listingLinks, async (link) => await sc.getListingImagesHemnet(link))
 
-    request(url, async (error, response, html) => {
-        if (!error && response.statusCode === 200) {
-            const $ = cheerio.load(html);
-            let listingLinks = getListingsLink($);
-            // let listingLinks =  [
-            //     "https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740", 
-            //     "https://www.hemnet.se/bostad/lagenhet-2rum-sofia-stockholms-kommun-erstagatan-30-16712395"
-            // ]
-            console.log(listingLinks)
-
-            const listings = await Promise.all(listingLinks.map(async (link, index) => {
-                const listingInfo = await getListingInfo(link)
-                console.log("Done with one property:", listingInfo)
-                return listingInfo
-            }));
-            console.log(listings)
-        }
-    });
-
+    console.log('shuttingdown the headless scraper')
+    await sc.shutdown();
+    return listingsImage;
 }
 
-//getListingInfo("https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980")
-getListings();
+async function getListings(options) {
+    /** Main function to get info from listings
+     *  Provide options for the listing search on Hemnet. Such as url, max-price...
+     *  
+    */
+    const listingsURL = 'https://www.hemnet.se/bostader?location_ids%5B%5D=898741&item_types%5B%5D=bostadsratt&rooms_min=2&living_area_min=30&price_min=1750000&price_max=3500000';
+    const listingLinks = scrapeInfo(listingsURL, ($) => getListingsLink($))
+    // let listingLinks =  [
+    //     "https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740", 
+    //     "https://www.hemnet.se/bostad/lagenhet-2rum-sofia-stockholms-kommun-erstagatan-30-16712395"
+    // ]
+
+    const listingsInfo = await getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
+    const listingsImage = await getPageListingImages(listingLinks)
+
+    //TODO: Combine everything
+}
+
+function generateID(options) {
+    //TOD: generating id for object
+    return options.id
+}
+
+async function test(){
+    //getListingInfo("https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980")
+    const images = await getPageListingImages(["https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980"])
+    console.log('Result of test is', images)
+    //getListings();
+}
+test();
