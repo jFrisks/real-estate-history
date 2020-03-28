@@ -2,6 +2,7 @@ const request = require('request')
 const cheerio = require('cheerio')
 const translator = require('./translator')()
 const scraper = require('./scraper')
+const URL = require('url');
 
 function scrapeInfo(url, scrapingMethod) {
     let result = []
@@ -56,9 +57,9 @@ async function getPageListingInfo(hemnet_listing_url) {
                     const value = $(this).find('.property-attributes-table__value').text().trim().split('\n')[0]
                     tableInfo[titleEnglish] = value
                 })
-                
+
                 //Combine everything
-                const id = generateID({street, startPrice})
+                const id = generateID({"url": hemnet_listing_url})
                 const propertyInfo = {
                     "street": street,
                     "area": area,
@@ -106,8 +107,12 @@ async function getListings(options) {
 }
 
 function generateID(options) {
-    //TOD: generating id for object
-    return options.id
+    //https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740
+    //Should as of now get slug after last '/' -> lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740
+    const url = URL.parse(options.url)
+    const slugs = url.pathname.split('/')
+    const lastSlug = slugs[slugs.length - 1];
+    return lastSlug
 }
 
 async function test(){
