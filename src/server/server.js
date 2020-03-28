@@ -122,3 +122,9 @@ async function test(){
     //getListings();
 }
 test();
+
+/**
+ * TODO:
+ * - Check on solution to instead create a chrome extension for hemnet. Saving images and info of "hearted" listings
+ * - If each image takes 80kb -> 100mb is 1250 images. -> 25 images/listing -> 50 listings -> Takes a lot of space for hosting on server...
+ */
