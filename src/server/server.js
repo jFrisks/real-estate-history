@@ -101,7 +101,8 @@ async function getListings(options) {
     // ]
 
     const listingsInfo = await getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
-    const listingsImage = await getPageListingImages(listingLinks)
+    console.log('ListingsInfo: ', listingsInfo)
+    //const listingsImage = await getPageListingImages(listingLinks)
 
     //TODO: Combine everything
 }
@@ -116,9 +117,9 @@ function generateID(options) {
 }
 
 async function test(){
-    //getListingInfo("https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980")
-    const images = await getPageListingImages(["https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980"])
-    console.log('Result of test is', images)
+    const result = await getPageListingInfo("https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980")
+    //const result = await getPageListingImages(["https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980", "https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740", "https://www.hemnet.se/bostad/lagenhet-2rum-sofia-stockholms-kommun-erstagatan-30-16712395"])
+    console.log('Result of test is', result)
     //getListings();
 }
 test();
