@@ -28,11 +28,15 @@ const getListingsLink = ($) => {
 }
 
 const getListingsInfo = async (listingsLinks, getSpecificPageInfoMethod) => {
+    let listings = {}
+    //TODO: REWRITE O EACH AND SAVE IN LISTINGS AS {id1: {}, id2: {}, id3: {}}
     const allListingsInfo = await Promise.all(listingsLinks.map(async (link, index) => {
         //const listingInfo = await getPageListingInfo(link)
+        const id = generateID({"url": link})
         const listingInfo = await getSpecificPageInfoMethod(link)
-        console.log("Done with one property:", listingInfo)
-        return listingInfo
+        const result = {[id]: listingInfo}
+        console.log("Done with one property:", result)
+        return result
     }));
     //console.log(allListingsInfo)
     return allListingsInfo;
@@ -59,7 +63,6 @@ async function getPageListingInfo(hemnet_listing_url) {
                 })
 
                 //Combine everything
-                const id = generateID({"url": hemnet_listing_url})
                 const propertyInfo = {
                     "street": street,
                     "area": area,
@@ -67,7 +70,7 @@ async function getPageListingInfo(hemnet_listing_url) {
                     ...tableInfo,
                 }
                 //DONE
-                resolve({[id]: propertyInfo});
+                resolve(propertyInfo);
             }else{
                 reject(error)
             }
@@ -117,8 +120,10 @@ function generateID(options) {
 }
 
 async function test(){
-    const result = await getPageListingInfo("https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980")
-    //const result = await getPageListingImages(["https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980", "https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740", "https://www.hemnet.se/bostad/lagenhet-2rum-sofia-stockholms-kommun-erstagatan-30-16712395"])
+    const listingLinks = ["https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980"]
+    //const result = await getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
+    //const result = await getListingsInfo(listingLinks, async (link) => await getPageListingImages(link))
+    const result = await getPageListingImages(["https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980", "https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740", "https://www.hemnet.se/bostad/lagenhet-2rum-sofia-stockholms-kommun-erstagatan-30-16712395"])
     console.log('Result of test is', result)
     //getListings();
 }
