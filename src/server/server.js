@@ -120,12 +120,17 @@ function generateID(options) {
 }
 
 async function test(){
-    const listingLinks = ["https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980"]
+    //const listingLinks = ["https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980"]
     //const result = await getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
     //const result = await getListingsInfo(listingLinks, async (link) => await getPageListingImages(link))
-    const result = await getPageListingImages(["https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980", "https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740", "https://www.hemnet.se/bostad/lagenhet-2rum-sofia-stockholms-kommun-erstagatan-30-16712395"])
-    console.log('Result of test is', result)
-    //getListings();
+    //const result = await getPageListingImages(listingLinks)
+    //console.log('Result of test is', result)
+
+    // const x = {"1": {"a": "hej"}, "2":{"a": "hej"}}
+    // const y = {"1": {"b": "san"}, "2":{"b": "san"}}
+    // console.log(mergeDeep(x, y))
+
+    getListings();
 }
 test();
 
