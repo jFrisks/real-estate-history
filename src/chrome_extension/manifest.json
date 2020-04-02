@@ -1,0 +1,11 @@
+{
+    "name": "EstateHistory - Hemnet real estate history with images and data",
+    "version": "1.0",
+    "description": "All saved listings will have all info and images after they are sold",
+    "permissions": ["storage"],
+    "manifest_version": 2,
+    "background": {
+        "scripts": ["background.js"],
+        "persistent": false
+    }
+  }
