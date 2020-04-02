@@ -3,6 +3,7 @@ const cheerio = require('cheerio')
 const translator = require('./translator')()
 const scraper = require('./scraper')
 const URL = require('url');
+const { mergeDeep } = require('./utils');
 
 function scrapeInfo(url, scrapingMethod) {
     let result = []
@@ -28,8 +29,6 @@ const getListingsLink = ($) => {
 }
 
 const getListingsInfo = async (listingsLinks, getSpecificPageInfoMethod) => {
-    let listings = {}
-    //TODO: REWRITE O EACH AND SAVE IN LISTINGS AS {id1: {}, id2: {}, id3: {}}
     const allListingsInfo = await Promise.all(listingsLinks.map(async (link, index) => {
         //const listingInfo = await getPageListingInfo(link)
         const id = generateIdFromUrl({"url": link})
@@ -38,8 +37,15 @@ const getListingsInfo = async (listingsLinks, getSpecificPageInfoMethod) => {
         console.log("Done with one property:", result)
         return result
     }));
-    //console.log(allListingsInfo)
-    return allListingsInfo;
+    let listings = {}
+
+    for(let i = 0; i < allListingsInfo.length; i++){
+        listings = {
+            ...listings,
+            ...allListingsInfo[i]
+        }
+    }
+    return listings;
 }
 
 async function getPageListingInfo(hemnet_listing_url) {
@@ -97,17 +103,20 @@ async function getListings(options) {
      *  
     */
     const listingsURL = 'https://www.hemnet.se/bostader?location_ids%5B%5D=898741&item_types%5B%5D=bostadsratt&rooms_min=2&living_area_min=30&price_min=1750000&price_max=3500000';
-    const listingLinks = scrapeInfo(listingsURL, ($) => getListingsLink($))
-    // let listingLinks =  [
-    //     "https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740", 
-    //     "https://www.hemnet.se/bostad/lagenhet-2rum-sofia-stockholms-kommun-erstagatan-30-16712395"
-    // ]
+    // const listingLinks = scrapeInfo(listingsURL, ($) => getListingsLink($))
+    let listingLinks =  [
+        "https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740", 
+        "https://www.hemnet.se/bostad/lagenhet-2rum-sofia-stockholms-kommun-erstagatan-30-16712395"
+    ]
 
-    const listingsInfo = await getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
-    console.log('ListingsInfo: ', listingsInfo)
-    //const listingsImage = await getPageListingImages(listingLinks)
+    const listingsInfo = getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
+    const listingsImage = getPageListingImages(listingLinks)
 
     //TODO: Combine everything
+    const [doneInfo, doneImages] = await Promise.all([listingsInfo, listingsImage])
+    const combinedListings = mergeDeep(doneInfo, doneImages)
+
+    console.log('ListingsInfo: ', combinedListings)
 }
 
 function generateIdFromUrl(options) {
