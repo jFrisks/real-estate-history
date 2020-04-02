@@ -40,8 +40,9 @@ function scraper(){
             imageLinks.push(link)
         }
         console.log('Headless scraper has collected all image src')
-        
-        return imageLinks;
+
+        const imagesObject = {"images": imageLinks}
+        return imagesObject;
     };
 
     return {
