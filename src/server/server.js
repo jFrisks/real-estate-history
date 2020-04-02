@@ -32,7 +32,7 @@ const getListingsInfo = async (listingsLinks, getSpecificPageInfoMethod) => {
     //TODO: REWRITE O EACH AND SAVE IN LISTINGS AS {id1: {}, id2: {}, id3: {}}
     const allListingsInfo = await Promise.all(listingsLinks.map(async (link, index) => {
         //const listingInfo = await getPageListingInfo(link)
-        const id = generateID({"url": link})
+        const id = generateIdFromUrl({"url": link})
         const listingInfo = await getSpecificPageInfoMethod(link)
         const result = {[id]: listingInfo}
         console.log("Done with one property:", result)
@@ -110,7 +110,7 @@ async function getListings(options) {
     //TODO: Combine everything
 }
 
-function generateID(options) {
+function generateIdFromUrl(options) {
     //https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740
     //Should as of now get slug after last '/' -> lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740
     const url = URL.parse(options.url)
