@@ -5,6 +5,11 @@ const scraper = require('./scraper')
 const URL = require('url');
 const { mergeDeep } = require('./utils');
 
+const testListings = [
+    "https://www.hemnet.se/bostad/lagenhet-2rum-sodermalm-stockholms-kommun-slipgatan-12,-1,5-tr-16659036", 
+    "https://www.hemnet.se/bostad/lagenhet-2rum-lilla-essingen-kungsholmen-stockholms-kommun-stralgatan-23,-4-tr-16759892"
+]
+
 function scrapeInfo(url, scrapingMethod) {
     let result = []
     request(url, async (error, response, html) => {
@@ -97,17 +102,13 @@ async function getPageListingImages(listingLinks) {
     return listingsImage;
 }
 
+/** Main function to get info from listings
+ *  Provide options for the listing search on Hemnet. Such as url, max-price...
+*/
 async function getListings(options) {
-    /** Main function to get info from listings
-     *  Provide options for the listing search on Hemnet. Such as url, max-price...
-     *  
-    */
     const listingsURL = 'https://www.hemnet.se/bostader?location_ids%5B%5D=898741&item_types%5B%5D=bostadsratt&rooms_min=2&living_area_min=30&price_min=1750000&price_max=3500000';
-    // const listingLinks = scrapeInfo(listingsURL, ($) => getListingsLink($))
-    let listingLinks =  [
-        "https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740", 
-        "https://www.hemnet.se/bostad/lagenhet-2rum-sofia-stockholms-kommun-erstagatan-30-16712395"
-    ]
+    //const listingLinks = scrapeInfo(listingsURL, ($) => getListingsLink($))
+    let listingLinks =  testListings
 
     const listingsInfo = getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
     const listingsImage = getPageListingImages(listingLinks)
@@ -129,7 +130,7 @@ function generateIdFromUrl(options) {
 }
 
 async function test(){
-    //const listingLinks = ["https://www.hemnet.se/bostad/lagenhet-2rum-kungsholmen-essingeoarna-stockholms-kommun-stenshallsvagen-13-16672980"]
+    //const listingLinks = testListings
     //const result = await getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
     //const result = await getListingsInfo(listingLinks, async (link) => await getPageListingImages(link))
     //const result = await getPageListingImages(listingLinks)
@@ -142,9 +143,3 @@ async function test(){
     getListings();
 }
 test();
-
-/**
- * TODO:
- * - Check on solution to instead create a chrome extension for hemnet. Saving images and info of "hearted" listings
- * - If each image takes 80kb -> 100mb is 1250 images. -> 25 images/listing -> 50 listings -> Takes a lot of space for hosting on server...
- */
