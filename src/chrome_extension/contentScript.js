@@ -17,7 +17,8 @@ window.addEventListener("load", function(event) {
         let action = isUnliked ? unlikeAction : likeAction
 
         const message = {
-            action
+            action,
+            url: window.location.href
         }
         
         //send message to extension
