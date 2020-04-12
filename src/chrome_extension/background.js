@@ -121,16 +121,3 @@ function parseHemnetId(url){
     //"","bostad", "listing-id" -> want listing-id
     return new URL(url).pathname.split('/')[2];
 }
-
-/** 
- * TODOS:
- * X Add eventlistener in background.js when savedbutton is pressed and active
- * X Send message to extension that it has been pushed
- * X Read message and do stuff
- * X Get Popup to show sync.storage
- * -X read url to get listing-id 
- * -X read storage and show data
- * -X save image to storage
- * - Send api-request to scraper
- * X Add Icon
-*/
