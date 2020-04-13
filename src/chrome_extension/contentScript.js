@@ -8,9 +8,11 @@ const unlikeAction = "unlikeButtonClicked"
 window.addEventListener("load", function(event) { 
     console.log('RealEstateHistory - Page loaded fully')
 
-
     //WHEN LIKE/UNLIKE-BUTTON CLICKED
     let likeUnlikeButton = document.getElementsByClassName('property-gallery__button--first')[0];
+    if(!likeUnlikeButton)
+        return console.error('Hemnet like button not found');
+
     likeUnlikeButton.addEventListener('click', function(){
         //check if liked or unliked
         const isUnliked = likeUnlikeButton.children[0].classList.contains(unlikeButtonClassName)
@@ -25,6 +27,8 @@ window.addEventListener("load", function(event) {
         //send message to extension
         chrome.runtime.sendMessage(undefined, message, undefined, function(responseMessage){
             //calback
+            if(!responseMessage)
+                console.error(chrome.runtime.lastError)
             console.log(responseMessage)
         })
 
