@@ -1,3 +1,4 @@
+const URL = require('url');
 /** 
  * Utils for scraper and server
 */
