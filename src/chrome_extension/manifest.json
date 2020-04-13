@@ -2,7 +2,7 @@
     "name": "EstateHistory - Hemnet real estate history with images and data",
     "version": "1.0",
     "description": "All saved listings will have all info and images after they are sold",
-    "permissions": ["activeTab", "declarativeContent","storage"],
+    "permissions": ["activeTab", "declarativeContent","storage", "http://localhost:3000/"],
     "background": {
         "scripts": ["background.js"],
         "persistent": false
