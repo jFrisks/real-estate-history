@@ -90,6 +90,15 @@ chrome.runtime.onMessage.addListener(function(message, sender, reply){
         //TODO: get data from scrape-server
 
         //TODO: removeDataToListingObject
+        const key = parseHemnetId(message.url)
+        removeListingObject(key, (err, result) => {
+            if(err)
+                return reply(err);
+            //reply
+            const message = 'like button unregistered in extension for url' + sender.tab.url + '. ' + result
+            reply(message)
+        })
+
         //reply
         const message = 'unlike button registered in extension ' + sender.tab.url
         reply(message)
@@ -114,6 +123,13 @@ function saveDataToListingObject(key, data, callback){
         console.log('Storage - added %o with key %s', data, key)
     });
     return callback(undefined, "saved data to listing with key " + key)
+}
+
+function removeListingObject(key, callback){
+    chrome.storage.sync.remove(key, () => {
+        console.log('Storage - removed key %s', key)
+    })
+    return callback(undefined, "removed data listing from key " + key)
 }
 
 //TODO: Fix duplicate same as popup.js
