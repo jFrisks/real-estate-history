@@ -75,6 +75,7 @@ async function getPageListingInfo(hemnet_listing_url) {
 
                 //Combine everything
                 const propertyInfo = {
+                    "originalUrl": hemnet_listing_url,
                     "street": street,
                     "area": area,
                     "startPrice": startPrice,
