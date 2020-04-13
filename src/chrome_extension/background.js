@@ -30,15 +30,16 @@ chrome.runtime.onMessage.addListener(function(message, sender, reply){
         //THIS IS MOCKUP DATA
         //const data = testListingData
         //handleGetListingSuccess(data);
-        getListingThroughAPI(message.url, handleGetListingSuccess)
-
-        function handleGetListingSuccess(err, data){
+        getListingThroughAPI(message.url, (err, data) => {
             //check for error
-            if(err)
-                return;
-            //save retrieved data to local storage
-            saveDataToListingObject(key, data[key], (err, result) => handleOnMessageReply(err,result, 'like button registered in extension for url', sender, reply));
-        }
+            if(err){
+                console.error(err);
+                return reply(err);
+            }else{
+                //save retrieved data to local storage
+                saveDataToListingObject(key, data[key], (err, result) => handleOnMessageReply(err,result, 'like button registered in extension for url', sender, reply));
+            }
+        });
     }
     else if(message.action === unlikeAction){
         //unlikebutton
@@ -55,6 +56,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, reply){
         const message = 'could not understand message sent to extension'
         reply(message)
     }
+    return true;
 })
 
 function saveDataToListingObject(key, data, callback){
@@ -78,11 +80,13 @@ function removeListingObject(key, callback){
 }
 
 function handleOnMessageReply(err, result, replyMessage, sender, reply){
-    if(err)
+    if(err){
+        console.error(err)
         return reply(err);
+    }
     //reply 'like button unregistered in extension for url'
     const message = replyMessage + sender.tab.url + '. ' + result
-    reply(message)
+    reply(message);
 }
 
 //TODO: Fix duplicate same as popup.js
