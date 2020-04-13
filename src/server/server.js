@@ -1,21 +1,17 @@
 const request = require('request')
 const cheerio = require('cheerio')
-const translator = require('./translator')()
+const translator = require('./translator')("swedish")
 const scraper = require('./scraper')
 const URL = require('url');
 const { mergeDeep, generateIdFromUrl } = require('./utils');
-
-const testListings = [
-    "https://www.hemnet.se/bostad/lagenhet-2rum-sodermalm-stockholms-kommun-slipgatan-12,-1,5-tr-16659036", 
-    "https://www.hemnet.se/bostad/lagenhet-2rum-lilla-essingen-kungsholmen-stockholms-kommun-stralgatan-23,-4-tr-16759892"
-]
 
 function scrapeInfo(url, scrapingMethod) {
     let result = []
     request(url, async (error, response, html) => {
         if (!error && response.statusCode === 200) {
             const $ = cheerio.load(html)
-            //listingLinks = getListingsLink($)
+
+            //Normally getListingsLink methods is passed as scrapingMethod
             result = scrapingMethod($)
             console.log(result)
         }
@@ -31,6 +27,13 @@ const getListingsLink = ($) => {
         filteredListings.push(link)
     })
     return filteredListings
+}
+
+function getFilteredListingsURL(options){
+    //TODO: get params to filter search
+    const listingsURL = 'https://www.hemnet.se/bostader?location_ids%5B%5D=898741&item_types%5B%5D=bostadsratt&rooms_min=2&living_area_min=30&price_min=1750000&price_max=3500000';
+    const listingLinks = scrapeInfo(listingsURL, ($) => getListingsLink($));
+    return listingLinks;
 }
 
 const getListingsInfo = async (listingsLinks, getSpecificPageInfoMethod) => {
@@ -106,11 +109,7 @@ async function getPageListingImages(listingLinks) {
 /** Main function to get info from listings
  *  Provide options for the listing search on Hemnet. Such as url, max-price...
 */
-async function getListings(options) {
-    const listingsURL = 'https://www.hemnet.se/bostader?location_ids%5B%5D=898741&item_types%5B%5D=bostadsratt&rooms_min=2&living_area_min=30&price_min=1750000&price_max=3500000';
-    //const listingLinks = scrapeInfo(listingsURL, ($) => getListingsLink($))
-    let listingLinks =  testListings
-
+async function getListings(listingLinks) {
     const listingsInfo = getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
     const listingsImage = getPageListingImages(listingLinks)
 
@@ -121,17 +120,10 @@ async function getListings(options) {
     console.log('ListingsInfo: ', combinedListings)
 }
 
-async function test(){
-    //const listingLinks = testListings
-    //const result = await getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
-    //const result = await getListingsInfo(listingLinks, async (link) => await getPageListingImages(link))
-    //const result = await getPageListingImages(listingLinks)
-    //console.log('Result of test is', result)
-
-    // const x = {"1": {"a": "hej"}, "2":{"a": "hej"}}
-    // const y = {"1": {"b": "san"}, "2":{"b": "san"}}
-    // console.log(mergeDeep(x, y))
-
-    getListings();
+module.exports = {
+    getListings,
+    getListingsInfo,
+    getPageListingInfo,
+    getPageListingImages,
+    getFilteredListingsURL,
 }
-test();
