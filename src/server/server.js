@@ -3,7 +3,7 @@ const cheerio = require('cheerio')
 const translator = require('./translator')()
 const scraper = require('./scraper')
 const URL = require('url');
-const { mergeDeep } = require('./utils');
+const { mergeDeep, generateIdFromUrl } = require('./utils');
 
 const testListings = [
     "https://www.hemnet.se/bostad/lagenhet-2rum-sodermalm-stockholms-kommun-slipgatan-12,-1,5-tr-16659036", 
@@ -119,15 +119,6 @@ async function getListings(options) {
     const combinedListings = mergeDeep(doneInfo, doneImages)
 
     console.log('ListingsInfo: ', combinedListings)
-}
-
-function generateIdFromUrl(options) {
-    //https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740
-    //Should as of now get slug after last '/' -> lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740
-    const url = URL.parse(options.url)
-    const slugs = url.pathname.split('/')
-    const lastSlug = slugs[slugs.length - 1];
-    return lastSlug
 }
 
 async function test(){

@@ -1,4 +1,6 @@
-
+/** 
+ * Utils for scraper and server
+*/
 
 function isObject(item) {
     return (item && typeof item === 'object' && !Array.isArray(item));
@@ -27,6 +29,16 @@ function mergeDeep(target, ...sources){
     return mergeDeep(target, ...sources);
 }
 
+function generateIdFromUrl(options) {
+  //https://www.hemnet.se/bostad/lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740
+  //Should as of now get slug after last '/' -> lagenhet-2rum-ostermalm-vasastan-stockholms-kommun-valhallavagen-69-16700740
+  const url = URL.parse(options.url)
+  const slugs = url.pathname.split('/')
+  const lastSlug = slugs[slugs.length - 1];
+  return lastSlug
+}
+
 module.exports = {
-    mergeDeep
+    mergeDeep,
+    generateIdFromUrl
 }
