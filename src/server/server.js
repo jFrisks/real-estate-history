@@ -5,6 +5,14 @@ const scraper = require('./scraper')
 const URL = require('url');
 const { mergeDeep, generateIdFromUrl } = require('./utils');
 
+
+function getFilteredListingsURL(options){
+    //TODO: get params to filter search
+    const listingsURL = 'https://www.hemnet.se/bostader?location_ids%5B%5D=898741&item_types%5B%5D=bostadsratt&rooms_min=2&living_area_min=30&price_min=1750000&price_max=3500000';
+    const listingLinks = scrapeInfo(listingsURL, ($) => getListingsLink($));
+    return listingLinks;
+}
+
 function scrapeInfo(url, scrapingMethod) {
     let result = []
     request(url, async (error, response, html) => {
@@ -29,31 +37,18 @@ const getListingsLink = ($) => {
     return filteredListings
 }
 
-function getFilteredListingsURL(options){
-    //TODO: get params to filter search
-    const listingsURL = 'https://www.hemnet.se/bostader?location_ids%5B%5D=898741&item_types%5B%5D=bostadsratt&rooms_min=2&living_area_min=30&price_min=1750000&price_max=3500000';
-    const listingLinks = scrapeInfo(listingsURL, ($) => getListingsLink($));
-    return listingLinks;
-}
+/** Main function to get info from listings
+ *  Provide options for the listing search on Hemnet. Such as url, max-price...
+*/
+async function getListings(listingLinks) {
+    const listingsInfo = getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
+    const listingsImage = getPageListingImages(listingLinks)
 
-const getListingsInfo = async (listingsLinks, getSpecificPageInfoMethod) => {
-    const allListingsInfo = await Promise.all(listingsLinks.map(async (link, index) => {
-        //const listingInfo = await getPageListingInfo(link)
-        const id = generateIdFromUrl({"url": link})
-        const listingInfo = await getSpecificPageInfoMethod(link)
-        const result = {[id]: listingInfo}
-        console.log("Done with one property:", result)
-        return result
-    }));
-    let listings = {}
+    //TODO: Combine everything
+    const [doneInfo, doneImages] = await Promise.all([listingsInfo, listingsImage])
+    const combinedListings = mergeDeep(doneInfo, doneImages)
 
-    for(let i = 0; i < allListingsInfo.length; i++){
-        listings = {
-            ...listings,
-            ...allListingsInfo[i]
-        }
-    }
-    return listings;
+    console.log('ListingsInfo: ', combinedListings)
 }
 
 async function getPageListingInfo(hemnet_listing_url) {
@@ -106,18 +101,24 @@ async function getPageListingImages(listingLinks) {
     return listingsImage;
 }
 
-/** Main function to get info from listings
- *  Provide options for the listing search on Hemnet. Such as url, max-price...
-*/
-async function getListings(listingLinks) {
-    const listingsInfo = getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
-    const listingsImage = getPageListingImages(listingLinks)
+const getListingsInfo = async (listingsLinks, getSpecificPageInfoMethod) => {
+    const allListingsInfo = await Promise.all(listingsLinks.map(async (link, index) => {
+        //const listingInfo = await getPageListingInfo(link)
+        const id = generateIdFromUrl({"url": link})
+        const listingInfo = await getSpecificPageInfoMethod(link)
+        const result = {[id]: listingInfo}
+        console.log("Done with one property:", result)
+        return result
+    }));
+    let listings = {}
 
-    //TODO: Combine everything
-    const [doneInfo, doneImages] = await Promise.all([listingsInfo, listingsImage])
-    const combinedListings = mergeDeep(doneInfo, doneImages)
-
-    console.log('ListingsInfo: ', combinedListings)
+    for(let i = 0; i < allListingsInfo.length; i++){
+        listings = {
+            ...listings,
+            ...allListingsInfo[i]
+        }
+    }
+    return listings;
 }
 
 module.exports = {
