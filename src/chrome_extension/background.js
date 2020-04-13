@@ -76,32 +76,16 @@ chrome.runtime.onMessage.addListener(function(message, sender, reply){
         const key = parseHemnetId(message.url)
 
         //save retrieved data to local storage
-        saveDataToListingObject(key, data, (err, result) => {
-            if(err)
-                return reply(err)
-            //reply
-            const message = 'like button registered in extension for url' + sender.tab.url + ' and ' + result
-            reply(message)
-        })
+        saveDataToListingObject(key, data, (err, result) => handleOnMessageReply(err,result, 'like button registered in extension for url', sender, reply));
         
     }
     else if(message.action === unlikeAction){
-        //unlikebutton - TODO stuff
+        //unlikebutton
         //TODO: get data from scrape-server
 
-        //TODO: removeDataToListingObject
+        //removeDataToListingObject
         const key = parseHemnetId(message.url)
-        removeListingObject(key, (err, result) => {
-            if(err)
-                return reply(err);
-            //reply
-            const message = 'like button unregistered in extension for url' + sender.tab.url + '. ' + result
-            reply(message)
-        })
-
-        //reply
-        const message = 'unlike button registered in extension ' + sender.tab.url
-        reply(message)
+        removeListingObject(key, (err, result) => handleOnMessageReply(err, result, 'like button unregistered in extension for url', sender, reply));
     }
     else{
         //TODO: if message not defined
@@ -130,6 +114,14 @@ function removeListingObject(key, callback){
         console.log('Storage - removed key %s', key)
     })
     return callback(undefined, "removed data listing from key " + key)
+}
+
+function handleOnMessageReply(err, result, replyMessage, sender, reply){
+    if(err)
+        return reply(err);
+    //reply 'like button unregistered in extension for url'
+    const message = replyMessage + sender.tab.url + '. ' + result
+    reply(message)
 }
 
 //TODO: Fix duplicate same as popup.js
