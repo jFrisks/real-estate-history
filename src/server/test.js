@@ -1,4 +1,4 @@
-const mainScraper = require('./server');
+const mainScraper = require('./mainScraper');
 
 const testListings = [
     "https://www.hemnet.se/bostad/lagenhet-2rum-sodermalm-stockholms-kommun-slipgatan-12,-1,5-tr-16659036", 
