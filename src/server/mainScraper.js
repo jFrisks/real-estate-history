@@ -40,21 +40,29 @@ const getListingsLink = ($) => {
  *  Provide options for the listing search on Hemnet. Such as url, max-price...
 */
 async function getListings(listingLinks) {
-    const listingsInfo = getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
-    const listingsImage = getPageListingImages(listingLinks)
-
-    //Combine everything
-    const [doneInfo, doneImages] = await Promise.all([listingsInfo, listingsImage])
-    const combinedListings = mergeDeep(doneInfo, doneImages)
-
-    console.log('ListingsInfo: ', combinedListings)
-    return combinedListings
+    try{
+        const listingsInfo = await getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
+        const listingsImage = await getPageListingImages(listingLinks)
+        //Combine everything
+        const combinedListings = mergeDeep(listingsInfo, listingsImage)
+    
+        console.log('ListingsInfo: ', combinedListings)
+        return combinedListings;
+    }catch(e){
+        console.error(e);
+        return undefined;
+    }   
+    
 }
 
 async function getPageListingInfo(hemnet_listing_url) {
     return new Promise((resolve, reject) => {
         request(hemnet_listing_url, (error, response, html) => {
-            if (!error && response.statusCode === 200) {
+            if(error)
+                reject(new Error(error));
+            else if(response.statusCode !== 200)
+                reject(new Error(response.statusCode))
+            else if (!error && response.statusCode === 200) {
                 const $ = cheerio.load(html)
                 console.log('LOADED DETAILED PAGE for ', hemnet_listing_url)
                 //Get text-info
@@ -82,7 +90,7 @@ async function getPageListingInfo(hemnet_listing_url) {
                 //DONE
                 resolve(propertyInfo);
             }else{
-                reject(error)
+                reject(new Error(error))
             }
         })
     }) 
@@ -93,21 +101,30 @@ async function getPageListingImages(listingLinks) {
     await sc.launch()
     console.log('launched headless scraper')
     
-    //DO THIS FOR ALL
-    const listingsImage = await getListingsInfo(listingLinks, async (link) => await sc.getListingImagesHemnet(link))
-
-    console.log('shuttingdown the headless scraper')
-    await sc.shutdown();
-    return listingsImage;
+    //DO THIS FOR ALL - Will get objects with empty values if error
+    try{
+        const listingsImage = await getListingsInfo(listingLinks, async (link) => await sc.getListingImagesHemnet(link))
+        console.log('shuttingdown the headless scraper')
+        await sc.shutdown();
+        return listingsImage;
+    }catch(e){
+        console.log('shuttingdown the headless scraper after error')
+        sc.shutdown();
+        throw e;
+    }    
 }
 
+/** Gets Listing Info specified by method in paramp5.BandPass()
+ * Returns {[id]: listingInfo} or if error: undefined
+ * @param {*} listingsLinks 
+ * @param {*} getSpecificPageInfoMethod 
+ */
 const getListingsInfo = async (listingsLinks, getSpecificPageInfoMethod) => {
     const allListingsInfo = await Promise.all(listingsLinks.map(async (link, index) => {
         //const listingInfo = await getPageListingInfo(link)
         const id = generateIdFromUrl({"url": link})
         const listingInfo = await getSpecificPageInfoMethod(link)
         const result = {[id]: listingInfo}
-        console.log("Done with one property:", result)
         return result
     }));
     let listings = {}

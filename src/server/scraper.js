@@ -11,9 +11,19 @@ function scraper(){
         await browser.close();
     }
 
+    /** Gets images for one listing.
+     *  Returns {"images": [link1, link2, ...]} or throws error if rejected
+    */
     const getListingImagesHemnet = async (url) => {
         try{
             const page = await browser.newPage();
+            page.on('error', (err) => {
+                console.error('error on page', err)
+            })
+            page.on('pageerror', (err) => {
+                console.error('error on page', err)
+            })
+
             await page.goto(url);
             console.log('Headless scraper visited page ', url)
             
@@ -45,8 +55,6 @@ function scraper(){
             return imagesObject;
         }catch(err){
             console.error(err);
-            const imagesObject = {"images": []};
-            return imagesObject;
         }
     };
 
