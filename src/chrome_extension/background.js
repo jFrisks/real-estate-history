@@ -1,6 +1,7 @@
 'use strict';
 const likeAction = "likeButtonClicked"
 const unlikeAction = "unlikeButtonClicked"
+const parseHemnetIdAction = "parseHemnetId"
 
 chrome.runtime.onInstalled.addListener(function () {
     chrome.storage.sync.set({ color: '#3aa757' }, function () {
@@ -43,15 +44,12 @@ chrome.runtime.onMessage.addListener(function(message, sender, reply){
     }
     else if(message.action === unlikeAction){
         //unlikebutton
-        //TODO: get data from scrape-server
-
         //removeDataToListingObject
         const key = parseHemnetId(message.url)
         removeListingObject(key, (err, result) => handleOnMessageReply(err, result, 'like button unregistered in extension for url', sender, reply));
     }
     else{
         //TODO: if message not defined
-
         //reply
         const message = 'could not understand message sent to extension'
         reply(message)
