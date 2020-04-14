@@ -43,7 +43,7 @@ async function getListings(listingLinks) {
     const listingsInfo = getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
     const listingsImage = getPageListingImages(listingLinks)
 
-    //TODO: Combine everything
+    //Combine everything
     const [doneInfo, doneImages] = await Promise.all([listingsInfo, listingsImage])
     const combinedListings = mergeDeep(doneInfo, doneImages)
 
