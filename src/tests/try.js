@@ -16,6 +16,7 @@ async function test(){
 async function testBad(){
     const badURL = "https://www.hemnet.se/bostad/lagenhet-2rum-sodermalm-stockholms-kommun-slipgatan-12,-1,5-tr-16659036-BAD"
     const listing = await mainScraper.getListings([badURL]);
+    console.log('res is: ', listing)
 }
 
 async function testGood(){

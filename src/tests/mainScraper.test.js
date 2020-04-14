@@ -20,6 +20,14 @@ test('test multiple buyable listing links', async () => {
     );
 });
 
+test('bad link should return empty object', async () => {
+    jest.setTimeout(40000);
+    const badURL = "https://www.hemnet.se/bostad/lagenhet-2rum-sodermalm-stockholms-kommun-slipgatan-12,-1,5-tr-16659036-BAD"
+    const listing = await mainScraper.getListings([badURL]);
+
+    //Should be empty, not return error
+    expect(listing).toBeUndefined();
+})
 
 // async function test(){
 //     //const result = await mainScraper.getListingsInfo(listingLinks, async (link) => await mainScraper.getPageListingInfo(link))
@@ -30,11 +38,6 @@ test('test multiple buyable listing links', async () => {
 //     // const x = {"1": {"a": "hej"}, "2":{"a": "hej"}}
 //     // const y = {"1": {"b": "san"}, "2":{"b": "san"}}
 //     // console.log(mergeDeep(x, y))
-// }
-
-
-// function testBadLink(){
-//     const listings = mainScraper.getListings(["https://www.hemnet.se/bostad/lagenhet-2rum-lilla-essingen-kungsholmen-stockholms-kommun-stralgatan-23,-4-tr-16759"]);
 // }
 
 // function testSoldListing(){
