@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const app = express();
-const scraper = require('./mainScraper')
+const scraper = require('./mainScraper')();
 const port = 3000;
 
 //cross-origin handling
@@ -24,6 +24,5 @@ app.get('/getListing/*', async (req, res) => {
 
     //Starting mainParser and get listing
     const listingInfo = await scraper.getListings([url])
-
     res.status(200).json(listingInfo);
 })

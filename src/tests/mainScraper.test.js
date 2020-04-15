@@ -1,7 +1,13 @@
-const mainScraper = require('../server/mainScraper');
+const scraper = require('../server/mainScraper');
 const { generateIdFromUrl } = require('../server/utils')
 
-test('test multiple buyable listing links', async () => {
+let mainScraper;
+
+beforeAll(() => {
+    return mainScraper = scraper();
+})
+
+test('one buyable listing links', async () => {
     jest.setTimeout(40000);
     const testListings = [
         "https://www.hemnet.se/bostad/lagenhet-2rum-sodermalm-stockholms-kommun-slipgatan-12,-1,5-tr-16659036"
