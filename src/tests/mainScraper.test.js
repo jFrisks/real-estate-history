@@ -18,6 +18,7 @@ test('test multiple buyable listing links', async () => {
     expect(listing1Obj.images[0]).toEqual(
         expect.stringMatching(/http/)
     );
+    return listings;
 });
 
 test('bad link should return empty object', async () => {

@@ -1,39 +1,13 @@
-const request = require('request')
-const cheerio = require('cheerio')
-const translator = require('./translator')("swedish")
-const scraper = require('./scraper')
+const imageScraper = require('./imageScraper')
+const infoScraper = require('./infoScraper')();
 const { mergeDeep, generateIdFromUrl } = require('./utils');
 
 
 function getFilteredListingsURL(options){
     //TODO: get params to filter search
     const listingsURL = 'https://www.hemnet.se/bostader?location_ids%5B%5D=898741&item_types%5B%5D=bostadsratt&rooms_min=2&living_area_min=30&price_min=1750000&price_max=3500000';
-    const listingLinks = scrapeInfo(listingsURL, ($) => getListingsLink($));
+    const listingLinks = infoScraper.scrapeInfo(listingsURL, ($) => infoScraper.getListingsLink($));
     return listingLinks;
-}
-
-function scrapeInfo(url, scrapingMethod) {
-    let result = []
-    request(url, async (error, response, html) => {
-        if (!error && response.statusCode === 200) {
-            const $ = cheerio.load(html)
-
-            //Normally getListingsLink methods is passed as scrapingMethod
-            result = scrapingMethod($)
-            console.log(result)
-        }
-    })
-    return result
-}
-
-const getListingsLink = ($) => {
-    const listings = $('.js-listing-card-link.listing-card')
-    let filteredListings = []
-    listings.each((index, listing) => {
-        let link = $(listing).attr('href')
-        filteredListings.push(link)
-    })
-    return filteredListings
 }
 
 /** Main function to get info from listings
@@ -41,7 +15,7 @@ const getListingsLink = ($) => {
 */
 async function getListings(listingLinks) {
     try{
-        const listingsInfo = await getListingsInfo(listingLinks, async (link) => await getPageListingInfo(link))
+        const listingsInfo = await getListingsInfo(listingLinks, async (link) => await infoScraper.getPageListingInfo(link))
         const listingsImage = await getPageListingImages(listingLinks)
         //Combine everything
         const combinedListings = mergeDeep(listingsInfo, listingsImage)
@@ -55,61 +29,20 @@ async function getListings(listingLinks) {
     
 }
 
-async function getPageListingInfo(hemnet_listing_url) {
-    return new Promise((resolve, reject) => {
-        request(hemnet_listing_url, (error, response, html) => {
-            if(error)
-                reject(new Error(error));
-            else if(response.statusCode !== 200)
-                reject(new Error(response.statusCode))
-            else if (!error && response.statusCode === 200) {
-                const $ = cheerio.load(html)
-                console.log('LOADED DETAILED PAGE for ', hemnet_listing_url)
-                //Get text-info
-                const street = $('.property-address__street.qa-property-heading').text()
-                const area = $('.property-address__area').text()
-                const startPrice = $('.property-info__price.qa-property-price').text()
-                const tableInfo = {}
-                $('.property-attributes-table__row').each(function (i, el) {
-                    const title = $(this).find('.property-attributes-table__label').text().trim()
-                    if (title.length < 1)
-                        return
-                    const titleEnglish = translator.translate(title)
-                    const value = $(this).find('.property-attributes-table__value').text().trim().split('\n')[0]
-                    tableInfo[titleEnglish] = value
-                })
-
-                //Combine everything
-                const propertyInfo = {
-                    "originalUrl": hemnet_listing_url,
-                    "street": street,
-                    "area": area,
-                    "startPrice": startPrice,
-                    ...tableInfo,
-                }
-                //DONE
-                resolve(propertyInfo);
-            }else{
-                reject(new Error(error))
-            }
-        })
-    }) 
-}
-
 async function getPageListingImages(listingLinks) {
-    const sc = scraper()
-    await sc.launch()
-    console.log('launched headless scraper')
+    const imageSc = imageScraper()
+    await imageSc.launch()
+    console.log('launched headless imageScraper')
     
     //DO THIS FOR ALL - Will get objects with empty values if error
     try{
-        const listingsImage = await getListingsInfo(listingLinks, async (link) => await sc.getListingImagesHemnet(link))
-        console.log('shuttingdown the headless scraper')
-        await sc.shutdown();
+        const listingsImage = await getListingsInfo(listingLinks, async (link) => await imageSc.getListingImagesHemnet(link))
+        console.log('shuttingdown the headless imageScraper')
+        await imageSc.shutdown();
         return listingsImage;
     }catch(e){
-        console.log('shuttingdown the headless scraper after error')
-        sc.shutdown();
+        console.log('shuttingdown the headless imageScraper after error')
+        imageSc.shutdown();
         throw e;
     }    
 }
@@ -142,7 +75,6 @@ const getListingsInfo = async (listingsLinks, getSpecificPageInfoMethod) => {
 module.exports = {
     getListings,
     getListingsInfo,
-    getPageListingInfo,
     getPageListingImages,
     getFilteredListingsURL,
 }
