@@ -1,0 +1,50 @@
+body {
+    text-align: center;
+    font-family: Verdana, Geneva, sans-serif;
+    width: 400px;
+    min-height: 300px;
+    padding: 0px;
+}
+
+tr {
+    text-align: left;
+}
+
+.listing_info{
+    padding: 0 20px;
+}
+
+#listing_details_table{
+    word-wrap: break-word;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.footer{
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#suggestButton {
+    margin-bottom: 30px;
+	background:linear-gradient(to bottom, #7dfa0f 5%, #00ff59 100%);
+	background-color:#7dfa0f;
+	border-radius:30px;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+    font-size:14px;
+    text-transform: uppercase;
+	padding:16px 31px;
+	text-decoration:none;
+}
+#suggestButton:hover {
+	background:linear-gradient(to bottom, #00ff59 5%, #7dfa0f 100%);
+	background-color:#00ff59;
+}
+#suggestButton:active {
+	position:relative;
+	top:1px;
+}
