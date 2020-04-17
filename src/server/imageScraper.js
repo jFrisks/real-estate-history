@@ -5,10 +5,11 @@ function scraper(){
 
     const launch = async () => {
         browser = await puppeteer.launch();
+        return browser;
     }
 
     const shutdown = async () => {
-        await browser.close();
+        return await browser.close();
     }
 
     /** Gets images for one listing.
@@ -50,11 +51,12 @@ function scraper(){
                 imageLinks.push(link)
             }
             console.log('Headless scraper has collected all image src')
+            await page.close();
 
             const imagesObject = {"images": imageLinks}
             return imagesObject;
         }catch(err){
-            console.error(err);
+            return console.error(err);
         }
     };
 

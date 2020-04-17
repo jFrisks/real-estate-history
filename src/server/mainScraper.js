@@ -9,12 +9,15 @@ function mainScraper(){
     function setUp(){
         imageSc.launch()
     }
+    function shutdown(){
+        imageSc.shutdown();
+    }
     setUp();
 
-    function getFilteredListingsURL(options){
+    async function getFilteredListingsURL(options = {url: 'https://www.hemnet.se/bostader?location_ids%5B%5D=898741&item_types%5B%5D=bostadsratt&rooms_min=2&living_area_min=30&price_min=1750000&price_max=3500000'}){
         //TODO: get params to filter search
-        const listingsURL = 'https://www.hemnet.se/bostader?location_ids%5B%5D=898741&item_types%5B%5D=bostadsratt&rooms_min=2&living_area_min=30&price_min=1750000&price_max=3500000';
-        const listingLinks = infoScraper.scrapeInfo(listingsURL, ($) => infoScraper.getListingsLink($));
+        const listingsURL = options.url;
+        const listingLinks = await infoScraper.scrapeInfo(listingsURL, ($) => infoScraper.getListingsLink($));
         return listingLinks;
     }
     
@@ -84,6 +87,7 @@ function mainScraper(){
         getListingsInfo,
         getPageListingImages,
         getFilteredListingsURL,
+        shutdown,
     }
 }
 
