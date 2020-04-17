@@ -15,7 +15,8 @@ const translations = {
         "pris/m²": "pricePerSquareMeter",
         "pris/m2": "pricePerSquareMeter",
         "upplåtelseform": "tenure",
-        "våning": "floor"
+        "våning": "floor",
+        "uteplats": "patio"
     }
 }
 
