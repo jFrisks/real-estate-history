@@ -11,7 +11,7 @@ afterEach(async () => {
 });
 
 test('scrape images and get array of image links', async () => {
-    const url = "https://www.hemnet.se/bostad/lagenhet-2rum-sodermalm-tanto-stockholms-kommun-tantogatan-59,-4-tr-16744682";
+    const url = "https://www.hemnet.se/bostad/lagenhet-2rum-kristinebergs-strand-stockholms-kommun-olof-dalins-vag-18-16771657";
     const images = await sc.getListingImagesHemnet(url);
     console.log(images);
     expect(images).toBeDefined()

@@ -4,10 +4,14 @@ const { generateIdFromUrl } = require('../server/utils')
 let mainScraper;
 
 beforeAll(() => {
-    return mainScraper = scraper();
+    mainScraper = scraper();
 })
 
-test('one buyable listing links', async () => {
+afterAll(async () => {
+    await mainScraper.shutdown()
+})
+
+test('get one buyable listing details', async () => {
     jest.setTimeout(40000);
     const testListings = [
         "https://www.hemnet.se/bostad/lagenhet-2rum-sodermalm-stockholms-kommun-slipgatan-12,-1,5-tr-16659036"
@@ -27,6 +31,52 @@ test('one buyable listing links', async () => {
     return listings;
 });
 
+test('Get listing links from given filter', async () => {
+    const links = await mainScraper.getFilteredListingsURL();
+
+    expect(links).toBeDefined();
+    expect(links[0]).toEqual(
+        expect.stringMatching(/http/)
+    )
+
+    return links;
+})
+
+test('one reqeust with 5 buyable listings links from first filtered on hemnet', async () => {
+    const firstIndex = 0
+    const lastIndex = 4
+    jest.setTimeout(40000);
+    //get 10 links
+    const links = (await mainScraper.getFilteredListingsURL()).slice(firstIndex, lastIndex);
+
+    //TODO: get details from all links
+    const listings = await mainScraper.getListings(links);
+    const listingIDs = links.map((link, index) => generateIdFromUrl({url: link}))
+
+
+    //test expectations
+    expect(listings).toBeDefined();
+    //test if listingID[first] and [last] is in listings
+    expect(listings).toHaveProperty(listingIDs[firstIndex])
+    expect(listings).toHaveProperty(listingIDs[lastIndex])
+
+    const listing1ObjFirst = listings[listingIDs[firstIndex]];
+    const listing1ObjLast = listings[listingIDs[lastIndex]];
+
+    //check borh objects for images
+    expect(listing1ObjFirst.images).toBeDefined();
+    expect(listing1ObjLast.images).toBeDefined();
+
+    //check both images has links
+    expect(listing1ObjFirst.images[0]).toEqual(
+        expect.stringMatching(/http/)
+    );
+    expect(listing1ObjLast.images[0]).toEqual(
+        expect.stringMatching(/http/)
+    );
+    return [links, listings];
+});
+
 test('bad link should return empty object', async () => {
     jest.setTimeout(40000);
     const badURL = "https://www.hemnet.se/bostad/lagenhet-2rum-sodermalm-stockholms-kommun-slipgatan-12,-1,5-tr-16659036-BAD"
@@ -34,26 +84,5 @@ test('bad link should return empty object', async () => {
 
     //Should be empty, not return error
     expect(listing).toBeUndefined();
+    return listing;
 })
-
-// async function test(){
-//     //const result = await mainScraper.getListingsInfo(listingLinks, async (link) => await mainScraper.getPageListingInfo(link))
-//     //const result = await mainScraper.getListingsInfo(listingLinks, async (link) => await mainScraper.getPageListingImages(link))
-//     //const result = await mainScraper.getPageListingImages(listingLinks)
-//     //console.log('Result of test is', result)
-
-//     // const x = {"1": {"a": "hej"}, "2":{"a": "hej"}}
-//     // const y = {"1": {"b": "san"}, "2":{"b": "san"}}
-//     // console.log(mergeDeep(x, y))
-// }
-
-// function testSoldListing(){
-//     //test solf but old link
-
-//     //test sold on sold-link
-
-// }
-
-// function testTerminatedServer(){
-
-// }
