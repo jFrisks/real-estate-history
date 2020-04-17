@@ -1,4 +1,5 @@
 const URL = require('url');
+const request = require('request');
 /** 
  * Utils for scraper and server
 */
@@ -39,7 +40,29 @@ function generateIdFromUrl(options) {
   return lastSlug
 }
 
+/** Promisifies a node request. 
+ *  Passes html to handleSuccess function
+*/
+function requestWithPromise(url, handleSuccess) {
+  return new Promise((resolve, reject) => {
+      request(url, (error, response, html) => {
+          if(error)
+              reject(new Error(error));
+          else if(response.statusCode !== 200)
+              reject(new Error(response.statusCode))
+          else if (!error && response.statusCode === 200) {
+              const result = handleSuccess(html);
+              //DONE
+              resolve(result);
+          }else{
+              reject(new Error(error))
+          }
+      })
+  }) 
+}
+
 module.exports = {
     mergeDeep,
-    generateIdFromUrl
+    generateIdFromUrl,
+    requestWithPromise
 }
