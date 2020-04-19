@@ -1,10 +1,18 @@
-setupPopup();
+const isLoadingListingAction = "isLoadingListing";
+const isNotLoadingListingAction = "isNotLoadingListing";
+const getIsLoadingListingAction = "getIsLoadingListing";
 
 function setupPopup(){
     //renderLogo();
+    //Ask if data is loading, depending on if loading or not, the listener will render properly
+    chrome.runtime.sendMessage({action: getIsLoadingListingAction}, () => {
+        console.log('CALLED getIsLoadingListingAction');
+    });
+
     renderListingInfo();
     addMailToEvent();
 }
+setupPopup();
 
 function renderLogo(){
     const logoSrc = chrome.runtime.getURL('./images/icon@48w.png')
@@ -34,6 +42,7 @@ function renderListingInfo(){
     getTabUrl((err, listingPath) => getStorageData(listingPath, handleGetStorageCompleted));
 }
 
+//private
 function renderListingDetails(data){
     //get list of details
     const listing_details = document.getElementById('listing_details_table');
@@ -55,6 +64,7 @@ function renderListingDetails(data){
     }
 }
 
+//private
 function renderImages(parent, links){
     for(let i = 0; i < links.length; i++){
         let img = document.createElement('IMG');
@@ -71,6 +81,11 @@ function renderListingImages(links){
 
 function renderMissingHistoryInfo(){
     const infoContainer = document.getElementById('extension_info');
+
+    //check for already rendered
+    if(infoContainer.childElementCount > 0)
+        return;
+
     const title = document.createElement('H1');
     const detailText = document.createElement('P');
 
@@ -79,6 +94,29 @@ function renderMissingHistoryInfo(){
 
     infoContainer.appendChild(title);
     infoContainer.appendChild(detailText);
+}
+
+function renderLoading(){
+    //check if alread loading -> dont need to add
+    const loadingList = document.getElementsByClassName('loading');
+    if(loadingList.length > 0){
+        return;
+    }
+
+    const loading = document.createElement('div');
+    const listingInfo = document.getElementsByClassName('listing_info')[0];
+    loading.className = "loading";
+    loading.innerHTML = "<div></div><div></div><div></div><div></div>"
+    //insert loading before listing_info
+    listingInfo.appendChild(loading);
+}
+
+function removeRenderLoading(){
+    //TODO: remove loading
+    const loading = document.getElementsByClassName('loading')[0];
+    if(loading){
+        loading.remove();
+    }
 }
 
 function getTabUrl(callback){
@@ -111,3 +149,23 @@ function parseHemnetId(url){
     //"","bostad", "listing-id"
     return new URL(url).pathname.split('/')[2];
 }
+
+
+/** LISTENS FOR MESSAGES IN POPUP */
+chrome.runtime.onMessage.addListener(function(message, sender, reply){
+    if(message.action === isLoadingListingAction){
+        //isLoadingImages
+        renderLoading();
+        console.log('LOADING');
+        reply("ADDED IS LOADING");
+    }
+    else if(message.action === isNotLoadingListingAction){
+        //isLoadingImages
+        removeRenderLoading();
+        renderListingInfo();
+        renderNewNotification();
+        console.log('DONE LOADING');
+        reply("ADDED IS NOT LOADING");
+    }
+    return true;
+})
