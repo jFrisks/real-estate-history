@@ -1,4 +1,5 @@
 'use strict';
+const isDev = false;
 const likeAction = "likeButtonClicked"
 const unlikeAction = "unlikeButtonClicked"
 const parseHemnetIdAction = "parseHemnetId"
@@ -94,7 +95,7 @@ function parseHemnetId(url){
 }
 
 function getListingThroughAPI(path, callback){
-    const apiServer = 'http://localhost:3000'
+    const apiServer = isDev ? 'http://localhost:3000' : 'https://real-estate-history-server.herokuapp.com';
     const action = 'getListing'
     const apiURL = `${apiServer}/${action}/${path}`
 
