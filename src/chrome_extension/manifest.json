@@ -1,7 +1,7 @@
 {
-    "name": "Real Estate History - View Hemnet images of sold listings",
+    "name": "Hi Bostäder - Bilder på sålda bostäder",
     "version": "0.0.6",
-    "description": "All saved listings will have all info and images after they are sold",
+    "description": "Se bilder på bostäder som sålts. Fungerar på Hemnet! Bilderna sparas när du 'sparar' en bostad.",
     "permissions": ["activeTab", "declarativeContent","storage", "http://localhost:3000/", "https://real-estate-history-server.herokuapp.com/"],
     "background": {
         "scripts": ["background.js"],
