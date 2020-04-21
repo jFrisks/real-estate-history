@@ -1,9 +1,11 @@
 const isLoadingListingAction = "isLoadingListing";
 const isNotLoadingListingAction = "isNotLoadingListing";
 const getIsLoadingListingAction = "getIsLoadingListing";
+const showDetails = false;
 
 function setupPopup(){
     //renderLogo();
+
     //Ask if data is loading, depending on if loading or not, the listener will render properly
     chrome.runtime.sendMessage({action: getIsLoadingListingAction}, () => {
         console.log('CALLED getIsLoadingListingAction');
@@ -30,10 +32,14 @@ function renderListingInfo(){
             renderMissingHistoryInfo();
             return;
         }
-
+        
+        removeRenderMissingHistoryInfo();
         //render details
-        renderListingDetails(data);
+        if(showDetails){
+            renderListingDetails(data);
+        }
         //render images if existing
+        console.log('storage gotten', data);
         if(data.images){
             renderListingImages(data.images)
         }
@@ -96,27 +102,23 @@ function renderMissingHistoryInfo(){
     infoContainer.appendChild(detailText);
 }
 
+function removeRenderMissingHistoryInfo(){
+    const infoContainer = document.getElementById('extension_info');
+    infoContainer.innerHTML = '';
+}
 function renderLoading(){
     //check if alread loading -> dont need to add
-    const loadingList = document.getElementsByClassName('loading');
-    if(loadingList.length > 0){
+    const loading = document.getElementsByClassName('loading')[0];
+    if(!loading)
         return;
-    }
-
-    const loading = document.createElement('div');
-    const listingInfo = document.getElementsByClassName('listing_info')[0];
-    loading.className = "loading";
-    loading.innerHTML = "<div></div><div></div><div></div><div></div>"
-    //insert loading before listing_info
-    listingInfo.appendChild(loading);
+    loading.style.display = "inlinne-block";
 }
 
 function removeRenderLoading(){
-    //TODO: remove loading
     const loading = document.getElementsByClassName('loading')[0];
-    if(loading){
-        loading.remove();
-    }
+    if(!loading)
+        return;
+    loading.style.display = "none";
 }
 
 function getTabUrl(callback){
@@ -155,16 +157,13 @@ function parseHemnetId(url){
 chrome.runtime.onMessage.addListener(function(message, sender, reply){
     if(message.action === isLoadingListingAction){
         //isLoadingImages
-        renderLoading();
-        console.log('LOADING');
+        //renderLoading();
         reply("ADDED IS LOADING");
     }
     else if(message.action === isNotLoadingListingAction){
         //isLoadingImages
-        removeRenderLoading();
+        //removeRenderLoading();
         renderListingInfo();
-        renderNewNotification();
-        console.log('DONE LOADING');
         reply("ADDED IS NOT LOADING");
     }
     return true;
