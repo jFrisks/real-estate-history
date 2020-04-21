@@ -104,7 +104,9 @@ function renderMissingHistoryInfo(){
 
 function removeRenderMissingHistoryInfo(){
     const infoContainer = document.getElementById('extension_info');
-    infoContainer.innerHTML = '';
+    while (infoContainer.firstChild) {
+        infoContainer.removeChild(infoContainer.lastChild);
+    }
 }
 function renderLoading(){
     //check if alread loading -> dont need to add
@@ -157,12 +159,12 @@ function parseHemnetId(url){
 chrome.runtime.onMessage.addListener(function(message, sender, reply){
     if(message.action === isLoadingListingAction){
         //isLoadingImages
-        //renderLoading();
+        renderLoading();
         reply("ADDED IS LOADING");
     }
     else if(message.action === isNotLoadingListingAction){
         //isLoadingImages
-        //removeRenderLoading();
+        removeRenderLoading();
         renderListingInfo();
         reply("ADDED IS NOT LOADING");
     }

@@ -3,7 +3,6 @@
     "version": "0.0.6",
     "description": "All saved listings will have all info and images after they are sold",
     "permissions": ["activeTab", "declarativeContent","storage", "http://localhost:3000/", "https://real-estate-history-server.herokuapp.com/"],
-    "content_security_policy": "default-src 'self'",
     "background": {
         "scripts": ["background.js"],
         "persistent": false
