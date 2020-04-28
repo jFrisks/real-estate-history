@@ -21,15 +21,15 @@
     <img src="src/chrome_extension/images/icon@128w.png" alt="Logo" width="128" height="128">
   </a>
 
-  <h3 align="center">Hi Bostäder</h3>
+  <h3 align="center">Hi Bostäder - Real Estate History</h3>
 
   <p align="center">
-    An awesome README template to jumpstart your projects!
-    <br />
-    <a href="https://github.com/jFrisks/real-estate-history/tree/master/src">Explore the code »</a>
-    <br />
+    Chrome extension that automatically saves history of real estate from websites. Keep track of sold properties and view images and details of real estate, even when sold. 
     <br />
     <a href="https://chrome.google.com/webstore/detail/mclndpdogncpmdahpdglcfmhcknijldk/publish-accepted?authuser=1&hl=sv"><strong>Add to Chrome! »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/jFrisks/real-estate-history/tree/master/src">Explore the code »</a>
     ·
     <a href="https://github.com/jFrisks/real-estate-history/issues">Request Feature »</a>
   </p>
