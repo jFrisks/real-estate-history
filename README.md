@@ -37,36 +37,24 @@
 
 
 
-<!-- TABLE OF CONTENTS -->
-## Table of Contents
-
-* [About the Project](#about-the-project)
-  * [Built With](#built-with)
-* [Getting Started](#getting-started)
-  * [Prerequisites](#prerequisites)
-  * [Installation](#installation)
-* [Usage](#usage)
-* [License](#license)
-* [Contact](#contact)
-* [Acknowledgements](#acknowledgements)
-
-
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
 [![Save listings and see images even when sold][product-screenshot]](https://lh3.googleusercontent.com/FYNB8Z12rdCa1LEVZW7Da3XolLC2H70C7f5fK1fvIBl5cz3AhaW0CmjUPHnGzHZ7G_fJzd0-sA=w640-h400-e365)
 
-There are many great README templates available on GitHub, however, I didn't find one that really suit my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need.
+Chrome extension that automatically saves history of real estate from websites. Keep track of sold properties and view images and details of real estate, even when sold.
 
-Here's why:
-* Your time should be focused on creating something amazing. A project that solves a problem and helps others
+Here's why to use it:
+* Keep images and details of apartments and houses even when they are sold. Compare the neighbourhood to understand the value of the property.
 * You shouldn't be doing the same tasks over and over like creating a README from scratch
-* You should element DRY principles to the rest of your life :smile:
+
+What you can't do, yet:
+* Get images of every sold real estate property. For legal reasons we do not store data online. Each extension stores the data locally synced with their Chrome Browser.
 
 
 ### Built With
-This section should list any major frameworks that you built your project using. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
+It is mostly built with javascript, HTML and CSS. It uses Google Chrome Extension Development best practices and is based on their manifest.json.
 * [Javascript](https://www.javascript.com/)
 
 
