@@ -47,7 +47,6 @@ Chrome extension that automatically saves history of real estate from websites. 
 
 Here's why to use it:
 * Keep images and details of apartments and houses even when they are sold. Compare the neighbourhood to understand the value of the property.
-* You shouldn't be doing the same tasks over and over like creating a README from scratch
 
 What you can't do, yet:
 * Get images of every sold real estate property. For legal reasons we do not store data online. Each extension stores the data locally synced with their Chrome Browser.
