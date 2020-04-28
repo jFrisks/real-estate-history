@@ -25,7 +25,8 @@
 
   <p align="center">
     Chrome extension that automatically saves history of real estate from websites. Keep track of sold properties and view images and details of real estate, even when sold. 
-    It uses jFriss (my) [Real Estate Image API - REPO](https://github.com/jFrisks/real-estate-history-server)
+    <br/>
+  It uses jFriss (my) <a href="https://github.com/jFrisks/real-estate-history-server">Real Estate Image API - REPO</a>
     <br />
     <a href="https://chrome.google.com/webstore/detail/mclndpdogncpmdahpdglcfmhcknijldk/publish-accepted?authuser=1&hl=sv"><strong>Add to Chrome! »</strong></a>
     <br />
