@@ -1,13 +1,17 @@
 'use strict';
-const likeAction = "likeButtonClicked"
-const unlikeAction = "unlikeButtonClicked"
-const parseHemnetIdAction = "parseHemnetId"
+const isDev = false;
+const likeAction = "likeButtonClicked";
+const unlikeAction = "unlikeButtonClicked";
+const isLoadingListingAction = "isLoadingListing";
+const isNotLoadingListingAction = "isNotLoadingListing";
+const getIsLoadingListingAction = "getIsLoadingListing";
+const parseHemnetIdAction = "parseHemnetId";
+
+/* MESSAGING is standardized to message = {action: "", ...options} */
+
+var isLoadingListing = false
 
 chrome.runtime.onInstalled.addListener(function () {
-    chrome.storage.sync.set({ color: '#3aa757' }, function () {
-        console.log("The color is green.");
-    });
-
     chrome.declarativeContent.onPageChanged.removeRules(undefined, function () {
         chrome.declarativeContent.onPageChanged.addRules([{
             conditions: [new chrome.declarativeContent.PageStateMatcher({
@@ -21,41 +25,6 @@ chrome.runtime.onInstalled.addListener(function () {
         }]);
     });
 });
-
-//Listens for if script-likebutton is fired
-chrome.runtime.onMessage.addListener(function(message, sender, reply){
-    if(!sender.tab) return reply("Message from non-content script")
-    else if(message.action === likeAction){
-        //likebutton
-        const key = parseHemnetId(message.url)
-        //THIS IS MOCKUP DATA
-        //const data = testListingData
-        //handleGetListingSuccess(data);
-        getListingThroughAPI(message.url, (err, data) => {
-            //check for error
-            if(err){
-                console.error(err);
-                return reply(err);
-            }else{
-                //save retrieved data to local storage
-                saveDataToListingObject(key, data[key], (err, result) => handleOnMessageReply(err,result, 'like button registered in extension for url', sender, reply));
-            }
-        });
-    }
-    else if(message.action === unlikeAction){
-        //unlikebutton
-        //removeDataToListingObject
-        const key = parseHemnetId(message.url)
-        removeListingObject(key, (err, result) => handleOnMessageReply(err, result, 'like button unregistered in extension for url', sender, reply));
-    }
-    else{
-        //TODO: if message not defined
-        //reply
-        const message = 'could not understand message sent to extension'
-        reply(message)
-    }
-    return true;
-})
 
 function saveDataToListingObject(key, data, callback){
     //check if data exists
@@ -94,9 +63,11 @@ function parseHemnetId(url){
 }
 
 function getListingThroughAPI(path, callback){
-    const apiServer = 'http://localhost:3000'
+    const apiServer = isDev ? 'http://localhost:3000' : 'https://real-estate-history-server.herokuapp.com';
     const action = 'getListing'
     const apiURL = `${apiServer}/${action}/${path}`
+
+    setIsLoading();
 
     //creating api call to apiURL from above and handling errors
     let xhr = new XMLHttpRequest();
@@ -110,6 +81,7 @@ function getListingThroughAPI(path, callback){
                 console.error(xhr.statusText)
                 callback(xhr.statusText)
             }
+            setIsNotLoading(xhr.statusText);
         }
     }
     xhr.onerror = function(e){
@@ -118,3 +90,72 @@ function getListingThroughAPI(path, callback){
     }
     xhr.send(null);
 }
+
+function setIsLoading(){
+    //set loading-state
+    isLoadingListing = true;
+    sendMessage(isLoadingListingAction);
+}
+
+function setIsNotLoading(status){
+    //send message to extension scripts that xhr is done loading listing info
+    isLoadingListing = false;
+    sendMessage(isNotLoadingListingAction, {status: status})
+}
+
+function sendMessage(action, options, callback = undefined){
+    chrome.runtime.sendMessage({action: action, ...options}, (reply) => {
+        if(callback){
+            callback(reply);
+        }
+        else if(reply){
+            console.log(reply);
+        }else{
+            //Popup is probably not up and running...
+            //console.error(new Error(chrome.runtime.lastError));
+        }
+    })
+}
+
+//Listens for if script-likebutton is fired
+chrome.runtime.onMessage.addListener(function(message, sender, reply){
+    //if(!sender.tab) return reply("Message from non-content script")
+    if(message.action === likeAction){
+        //likebutton
+        const key = parseHemnetId(message.url)
+        //THIS IS MOCKUP DATA
+        //const data = testListingData
+        //handleGetListingSuccess(data);
+        getListingThroughAPI(message.url, (err, data) => {
+            //check for error
+            if(err){
+                console.error(err);
+                return reply(err);
+            }else{
+                //save retrieved data to local storage
+                saveDataToListingObject(key, data[key], (err, result) => handleOnMessageReply(err,result, 'like button registered in extension for url', sender, reply));
+            }
+        });
+    }
+    else if(message.action === unlikeAction){
+        //unlikebutton
+        //removeDataToListingObject
+        const key = parseHemnetId(message.url)
+        removeListingObject(key, (err, result) => handleOnMessageReply(err, result, 'like button unregistered in extension for url', sender, reply));
+    }else if(message.action === getIsLoadingListingAction){
+        //send new message of it is loading data or not
+        if(isLoadingListing){
+            setIsLoading();
+        }else{
+            setIsNotLoading();
+        }
+        reply();
+    }
+    else{
+        //TODO: if message not defined
+        //reply
+        const message = 'could not understand message sent to extension'
+        reply(message)
+    }
+    return true;
+})

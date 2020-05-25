@@ -1,10 +1,20 @@
-setupPopup();
+const isLoadingListingAction = "isLoadingListing";
+const isNotLoadingListingAction = "isNotLoadingListing";
+const getIsLoadingListingAction = "getIsLoadingListing";
+const showDetails = false;
 
 function setupPopup(){
     //renderLogo();
+
+    //Ask if data is loading, depending on if loading or not, the listener will render properly
+    chrome.runtime.sendMessage({action: getIsLoadingListingAction}, () => {
+        console.log('CALLED getIsLoadingListingAction');
+    });
+
     renderListingInfo();
     addMailToEvent();
 }
+setupPopup();
 
 function renderLogo(){
     const logoSrc = chrome.runtime.getURL('./images/icon@48w.png')
@@ -22,10 +32,14 @@ function renderListingInfo(){
             renderMissingHistoryInfo();
             return;
         }
-
+        
+        removeRenderMissingHistoryInfo();
         //render details
-        renderListingDetails(data);
+        if(showDetails){
+            renderListingDetails(data);
+        }
         //render images if existing
+        console.log('storage gotten', data);
         if(data.images){
             renderListingImages(data.images)
         }
@@ -34,6 +48,7 @@ function renderListingInfo(){
     getTabUrl((err, listingPath) => getStorageData(listingPath, handleGetStorageCompleted));
 }
 
+//private
 function renderListingDetails(data){
     //get list of details
     const listing_details = document.getElementById('listing_details_table');
@@ -55,6 +70,7 @@ function renderListingDetails(data){
     }
 }
 
+//private
 function renderImages(parent, links){
     for(let i = 0; i < links.length; i++){
         let img = document.createElement('IMG');
@@ -71,6 +87,11 @@ function renderListingImages(links){
 
 function renderMissingHistoryInfo(){
     const infoContainer = document.getElementById('extension_info');
+
+    //check for already rendered
+    if(infoContainer.childElementCount > 0)
+        return;
+
     const title = document.createElement('H1');
     const detailText = document.createElement('P');
 
@@ -79,6 +100,27 @@ function renderMissingHistoryInfo(){
 
     infoContainer.appendChild(title);
     infoContainer.appendChild(detailText);
+}
+
+function removeRenderMissingHistoryInfo(){
+    const infoContainer = document.getElementById('extension_info');
+    while (infoContainer.firstChild) {
+        infoContainer.removeChild(infoContainer.lastChild);
+    }
+}
+function renderLoading(){
+    //check if alread loading -> dont need to add
+    const loading = document.getElementsByClassName('loading')[0];
+    if(!loading)
+        return;
+    loading.style.display = "inlinne-block";
+}
+
+function removeRenderLoading(){
+    const loading = document.getElementsByClassName('loading')[0];
+    if(!loading)
+        return;
+    loading.style.display = "none";
 }
 
 function getTabUrl(callback){
@@ -111,3 +153,20 @@ function parseHemnetId(url){
     //"","bostad", "listing-id"
     return new URL(url).pathname.split('/')[2];
 }
+
+
+/** LISTENS FOR MESSAGES IN POPUP */
+chrome.runtime.onMessage.addListener(function(message, sender, reply){
+    if(message.action === isLoadingListingAction){
+        //isLoadingImages
+        renderLoading();
+        reply("ADDED IS LOADING");
+    }
+    else if(message.action === isNotLoadingListingAction){
+        //isLoadingImages
+        removeRenderLoading();
+        renderListingInfo();
+        reply("ADDED IS NOT LOADING");
+    }
+    return true;
+})

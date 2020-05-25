@@ -29,13 +29,13 @@ window.addEventListener("load", function(event) {
             url: window.location.href
         }
         
-        console.log('Extension registered like/unlike')
+        //console.log('Extension registered like/unlike')
         //send message to extension
         chrome.runtime.sendMessage(undefined, message, undefined, function(responseMessage){
             //calback
             if(!responseMessage)
                 console.error(chrome.runtime.lastError)
-            console.log(responseMessage)
+            //console.log(responseMessage)
         })
 
     }
