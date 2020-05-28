@@ -35,6 +35,7 @@ function saveDataToListingObject(key, data, callback){
     //save data to storage
     chrome.storage.sync.set({[key]: data}, () => {
         console.log('Storage - added %o with key %s', data, key)
+        notifyUser('success', "Successfully saved listing", "Wanna see the images? - Just click the extension icon in the top right corner in Chrome")
     });
     return callback(undefined, "saved data to listing with key " + key)
 }
@@ -71,6 +72,7 @@ function getListingThroughAPI(path, callback){
 
     //creating api call to apiURL from above and handling errors
     let xhr = new XMLHttpRequest();
+    console.log(`Getting XHR Request from: ${apiURL}`)
     xhr.open("GET", apiURL, true);
     xhr.onload = function(e){
         if(xhr.readyState === 4){
@@ -78,14 +80,14 @@ function getListingThroughAPI(path, callback){
                 let response = JSON.parse(xhr.responseText);
                 callback(undefined, response);
             }else{
-                console.error(xhr.statusText)
+                handleError(xhr.statusText)
                 callback(xhr.statusText)
             }
             setIsNotLoading(xhr.statusText);
         }
     }
     xhr.onerror = function(e){
-        console.error(xhr.statusText)
+        handleError(xhr.statusText)
         callback(xhr.statusText)
     }
     xhr.send(null);
@@ -117,7 +119,40 @@ function sendMessage(action, options, callback = undefined){
     })
 }
 
-//Listens for if script-likebutton is fired
+function notifyUser(type, title, message){
+    //Check types
+    if(!(typeof title == "string" && typeof message == "string"))
+        return
+
+    let options = {
+        type: "basic",
+        iconUrl: "images/icon@48w.png",
+        title: title,
+        message: message,
+        priority: 0,
+    }
+
+    console.log("ACTIVATING NOTIFICATION")
+    //Check for specific type
+    if(type === 'error'){
+        options = {...options, title: "Error - " + title}
+        chrome.notifications.create(undefined, options, undefined)
+    }
+    else if(type === 'success'){
+        chrome.notifications.create(undefined, options, undefined)
+    }
+}
+
+function handleError(text){
+    console.error(text)
+    notifyUser('error', "Error while saving the listing", text)
+}
+
+
+/**
+ * Message listener that listens for actions made by contentsctipt
+ * Actions are prewritten with handlers that take care of the action
+ */
 chrome.runtime.onMessage.addListener(function(message, sender, reply){
     //if(!sender.tab) return reply("Message from non-content script")
     if(message.action === likeAction){
@@ -129,7 +164,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, reply){
         getListingThroughAPI(message.url, (err, data) => {
             //check for error
             if(err){
-                console.error(err);
+                handleError(err)
                 return reply(err);
             }else{
                 //save retrieved data to local storage
