@@ -145,7 +145,7 @@ function getStorageData(listingPath, callback){
 function addMailToEvent() {
     const suggestButton = document.getElementById('suggestButton');
     suggestButton.onclick = () => {
-        chrome.tabs.create({url: 'mailto:jonathan.frisk.tech@gmail.com?subject=subject&message=message'})
+        chrome.tabs.create({url: 'jonathan.frisk.tech@gmail.com?subject=subject&message=message'})
     }
 }
 
