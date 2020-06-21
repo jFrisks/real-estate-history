@@ -33,7 +33,13 @@ function saveDataToListingObject(key, data, callback){
     //TODO - check for bad formatted data and if data already existing
 
     //save data to storage
-    chrome.storage.sync.set({[key]: data}, () => {
+    chrome.storage.local.set({[key]: data}, () => {
+        const errors = chrome.runtime.lastError
+        if(errors){
+            notifyUser('error', `Error while saving to database - ${errors}`)
+            return callback(errors)
+        }
+
         console.log('Storage - added %o with key %s', data, key)
         notifyUser('success', "Successfully saved listing", "Wanna see the images? - Just click the extension icon in the top right corner in Chrome")
     });
@@ -41,7 +47,7 @@ function saveDataToListingObject(key, data, callback){
 }
 
 function removeListingObject(key, callback){
-    chrome.storage.sync.remove(key, () => {
+    chrome.storage.local.remove(key, () => {
         console.log('Storage - removed key %s', key)
     })
     return callback(undefined, "removed data listing from key " + key)

@@ -139,7 +139,7 @@ function getTabUrl(callback){
 
 function getStorageData(listingPath, callback){
     //get info about current id
-    chrome.storage.sync.get(listingPath, (data) => callback(data[listingPath]));
+    chrome.storage.local.get(listingPath, (data) => callback(data[listingPath]));
 }
 
 function addMailToEvent() {
