@@ -160,43 +160,61 @@ function handleError(text){
  * Actions are prewritten with handlers that take care of the action
  */
 chrome.runtime.onMessage.addListener(function(message, sender, reply){
-    //if(!sender.tab) return reply("Message from non-content script")
-    if(message.action === likeAction){
-        //likebutton
-        const key = parseHemnetId(message.url)
-        //THIS IS MOCKUP DATA
-        //const data = testListingData
-        //handleGetListingSuccess(data);
-        getListingThroughAPI(message.url, (err, data) => {
-            //check for error
-            if(err){
-                handleError(err)
-                return reply(err);
-            }else{
-                //save retrieved data to local storage
-                saveDataToListingObject(key, data[key], (err, result) => handleOnMessageReply(err,result, 'like button registered in extension for url', sender, reply));
-            }
-        });
-    }
-    else if(message.action === unlikeAction){
-        //unlikebutton
-        //removeDataToListingObject
-        const key = parseHemnetId(message.url)
-        removeListingObject(key, (err, result) => handleOnMessageReply(err, result, 'like button unregistered in extension for url', sender, reply));
-    }else if(message.action === getIsLoadingListingAction){
-        //send new message of it is loading data or not
-        if(isLoadingListing){
-            setIsLoading();
-        }else{
-            setIsNotLoading();
-        }
-        reply();
-    }
-    else{
-        //TODO: if message not defined
-        //reply
-        const message = 'could not understand message sent to extension'
-        reply(message)
+    switch(message.action){
+        case likeAction:
+            handleLikeAction(message, sender, reply);
+            break;
+        case unlikeAction:
+            handleUnlikeAction(message, sender, reply);
+            break;
+        case getIsLoadingListingAction:
+            handleGetIsLoadingListingAction(message, sender, reply);
+            break;
+        default:
+            handleUnknownAction(message, sender, reply);
+            break;
     }
     return true;
 })
+
+function handleUnknownAction(message, sender, reply){
+    //TODO: if message not defined
+    //reply
+    const msg = 'could not understand message sent to extension'
+    reply(msg)
+}
+
+function handleLikeAction(message, sender, reply){
+    //likebutton
+    const key = parseHemnetId(message.url)
+    //THIS IS MOCKUP DATA
+    //const data = testListingData
+    //handleGetListingSuccess(data);
+    getListingThroughAPI(message.url, (err, data) => {
+        //check for error
+        if(err){
+            handleError(err)
+            return reply(err);
+        }else{
+            //save retrieved data to local storage
+            saveDataToListingObject(key, data[key], (err, result) => handleOnMessageReply(err,result, 'like button registered in extension for url', sender, reply));
+        }
+    });
+}
+
+function handleUnlikeAction(message, sender, reply){
+    //unlikebutton
+    //removeDataToListingObject
+    const key = parseHemnetId(message.url)
+    removeListingObject(key, (err, result) => handleOnMessageReply(err, result, 'like button unregistered in extension for url', sender, reply));
+}
+
+function handleGetIsLoadingListingAction(message, sender, reply){
+    //send new message of it is loading data or not
+    if(isLoadingListing){
+        setIsLoading();
+    }else{
+        setIsNotLoading();
+    }
+    reply();
+}
