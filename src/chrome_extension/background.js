@@ -5,6 +5,7 @@ const unlikeAction = "unlikeButtonClicked";
 const isLoadingListingAction = "isLoadingListing";
 const isNotLoadingListingAction = "isNotLoadingListing";
 const getIsLoadingListingAction = "getIsLoadingListing";
+const getSavedListingStateAction = "getSavedListingState";
 const parseHemnetIdAction = "parseHemnetId";
 
 /* MESSAGING is standardized to message = {action: "", ...options} */
@@ -170,12 +171,20 @@ chrome.runtime.onMessage.addListener(function(message, sender, reply){
         case getIsLoadingListingAction:
             handleGetIsLoadingListingAction(message, sender, reply);
             break;
+        case getSavedListingStateAction:
+            handleGetSavedListingStateAction(message, sender, reply);
+            break;
         default:
             handleUnknownAction(message, sender, reply);
             break;
     }
     return true;
 })
+
+
+
+
+/** Handlers for incoming messages */
 
 function handleUnknownAction(message, sender, reply){
     //TODO: if message not defined
@@ -217,4 +226,33 @@ function handleGetIsLoadingListingAction(message, sender, reply){
         setIsNotLoading();
     }
     reply();
+}
+
+async function handleGetSavedListingStateAction(message, sender, reply){
+    const listingKey = parseHemnetId(message.url)
+    console.log("Checking if key is saved in DB", listingKey)
+
+    //Check if listing is saved, else reply with error
+    try{
+        const isSaved = await isListingSaved(listingKey);
+        console.log("handleGetSavedListingStateAction:", isSaved)
+        return reply({isSaved})
+    }catch(err){
+        return reply({isSaved: false})
+        console.log("handleGetSavedListingStateAction:", false)
+    }
+}
+
+function getStorageData(listingPath, callback){
+    //get info about current id
+    chrome.storage.local.get(listingPath, (data) => callback(data[listingPath]));
+}
+function isListingSaved(listingPath){
+    return new Promise((resolve, reject) => {
+        getStorageData(listingPath, (listingData) => {
+            if(!listingData || listingData == {})
+                return resolve(false)
+            return resolve(true)
+        })
+    })
 }
