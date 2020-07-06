@@ -155,6 +155,20 @@ function handleError(text){
     notifyUser('error', "Error while saving the listing", text)
 }
 
+function getStorageData(listingPath, callback){
+    //get info about current id
+    chrome.storage.local.get(listingPath, (data) => callback(data[listingPath]));
+}
+function isListingSaved(listingPath){
+    return new Promise((resolve, reject) => {
+        getStorageData(listingPath, (listingData) => {
+            if(!listingData || listingData == {})
+                return resolve(false)
+            return resolve(true)
+        })
+    })
+}
+
 
 /**
  * Message listener that listens for actions made by contentsctipt
@@ -241,18 +255,4 @@ async function handleGetSavedListingStateAction(message, sender, reply){
         return reply({isSaved: false})
         console.log("handleGetSavedListingStateAction:", false)
     }
-}
-
-function getStorageData(listingPath, callback){
-    //get info about current id
-    chrome.storage.local.get(listingPath, (data) => callback(data[listingPath]));
-}
-function isListingSaved(listingPath){
-    return new Promise((resolve, reject) => {
-        getStorageData(listingPath, (listingData) => {
-            if(!listingData || listingData == {})
-                return resolve(false)
-            return resolve(true)
-        })
-    })
 }
