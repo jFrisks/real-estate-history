@@ -37,12 +37,12 @@ function saveDataToListingObject(key, data, callback){
     chrome.storage.local.set({[key]: data}, () => {
         const errors = chrome.runtime.lastError
         if(errors){
-            notifyUser('error', `Error while saving to database - ${errors}`)
+            sendNotificationInBrowser('error', `Error while saving to database - ${errors}`)
             return callback(errors)
         }
 
         console.log('Storage - added %o with key %s', data, key)
-        notifyUser('success', "Successfully saved listing", "Wanna see the images? - Just click the extension icon in the top right corner in Chrome")
+        sendNotificationInBrowser('success', "Successfully saved listing", "Wanna see the images? - Just click the extension icon in the top right corner in Chrome")
     });
     return callback(undefined, "saved data to listing with key " + key)
 }
@@ -126,7 +126,7 @@ function sendMessage(action, options, callback = undefined){
     })
 }
 
-function notifyUser(type, title, message){
+function sendNotificationInBrowser(type, title, message){
     //Check types
     if(!(typeof title == "string" && typeof message == "string"))
         return
@@ -152,13 +152,18 @@ function notifyUser(type, title, message){
 
 function handleError(text){
     console.error(text)
-    notifyUser('error', "Error while saving the listing", text)
+    sendNotificationInBrowser('error', "Error while saving the listing", text)
 }
 
 function getStorageData(listingPath, callback){
     //get info about current id
     chrome.storage.local.get(listingPath, (data) => callback(data[listingPath]));
 }
+
+/** Returns if listing is saved in storage.
+ * @returns True if saved and false if not saved
+ * Never rejects the promise
+*/
 function isListingSaved(listingPath){
     return new Promise((resolve, reject) => {
         getStorageData(listingPath, (listingData) => {
@@ -200,6 +205,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, reply){
 
 /** Handlers for incoming messages */
 
+/** Handles if action is unkown to background script
+ * It could be used if an unknown method-string is sent. Unkown is any other than the predfined actions listed as variables in background.js such as `likeAction`, `unlikeAction` etc
+*/
 function handleUnknownAction(message, sender, reply){
     //TODO: if message not defined
     //reply
@@ -252,7 +260,8 @@ async function handleGetSavedListingStateAction(message, sender, reply){
         console.log("handleGetSavedListingStateAction:", isSaved)
         return reply({isSaved})
     }catch(err){
+        //TODO: Should return error and handle it correctly
+        console.error("handleGetSavedListingStateAction had an error:", err)
         return reply({isSaved: false})
-        console.log("handleGetSavedListingStateAction:", false)
     }
 }
