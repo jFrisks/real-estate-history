@@ -49,7 +49,7 @@ What you can't do, yet:
 
 ### Built with
 Built as two projects:
-* **Server** - Scrapes image / info and allows REST API endpoints. Built with Javascript.
+* [**Server**](https://github.com/jFrisks/real-estate-history-server) - Scrapes image / info and allows REST API endpoints. Built with Javascript.
 * **Chrome Extension** - Helps you save and view real estate info. Calls the server. Built with javascript, HTML and CSS and follows [Google Chrome Extension Development best practices](https://developer.chrome.com/docs/extensions/).
 
 
