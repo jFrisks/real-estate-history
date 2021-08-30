@@ -1,14 +1,4 @@
 
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
-*** [![Contributors][contributors-shield]][contributors-url]
--->
-
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
@@ -48,16 +38,19 @@
 
 Chrome extension that automatically saves history of real estate from websites. Keep track of sold properties and view images and details of real estate, even when sold.
 
-Here's why to use it:
-* Keep images and details of apartments and houses even when they are sold. Compare the neighbourhood to understand the value of the property.
+WHY NEED IT?
+* Compare the condition of the house/apartment with images, not just numbers.
+* Compare neighbourhood.
+* Save your dream home for later.
 
 What you can't do, yet:
 * Get images of every sold real estate property. For legal reasons we do not store data online. Each extension stores the data locally synced with their Chrome Browser.
 
 
-### Built With
-It is mostly built with javascript, HTML and CSS. It uses Google Chrome Extension Development best practices and is based on their manifest.json.
-* [Javascript](https://www.javascript.com/)
+### Built with
+Built as two projects:
+* **Server** - Scrapes image / info and allows REST API endpoints. Built with Javascript.
+* **Chrome Extension** - Helps you save and view real estate info. Calls the server. Built with javascript, HTML and CSS and follows [Google Chrome Extension Development best practices](https://developer.chrome.com/docs/extensions/).
 
 
 
