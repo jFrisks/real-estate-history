@@ -137,9 +137,26 @@ function getTabUrl(callback){
     })
 }
 
+/** Gets listing data from storage by using listingKeyPath.
+ * If no data is existent, the method will try fallback storage from depricated versions (storage.sync)
+ */
 function getStorageData(listingPath, callback){
-    //get info about current id
-    chrome.storage.local.get(listingPath, (data) => callback(data[listingPath]));
+    //get storage of listingKey
+    chrome.storage.local.get(listingPath, (localData) => {
+        //Check standard data - local data
+        console.log("Getting data for listing with returned data: ", localData)
+        //if object, check if not empty
+        if(localData && !(Object.keys(localData).length === 0 && localData.constructor == Object)){
+            console.log("Returned as listingInfo:", localData[listingPath])
+            return callback(localData[listingPath])    
+        }
+        else{
+            //Check fallback storages (sync)
+            chrome.storage.sync.get(listingPath, (fallbackData) => {
+                callback(fallbackData[listingPath])
+            })
+        }
+    });
 }
 
 function addMailToEvent() {
