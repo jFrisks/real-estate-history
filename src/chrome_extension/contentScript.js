@@ -1,23 +1,25 @@
 'use strict';
 
 console.log('RealEstateHistory - Load contentcript')
-const unlikeButtonClassName = "save-listing__button--saved"
+const likeIconClassName = "save-listing-button__saved-icon";
+const likeUnlikeButtonSelector = ".property-gallery__actionbar .save-listing-button";
 const likeAction = "likeButtonClicked"
 const unlikeAction = "unlikeButtonClicked"
 const getSavedListingStateAction = "getSavedListingState";
-const hiSavedText = "HiSaved"
-const hiUnsavedText = "Not saved in Hi"
+const hiSavedText = "Sparad i HiBo"
+const hiUnsavedText = "Osparad i HiBo"
 const savedColor = "#2ef29a"
 const unsavedColor = "#f24f2e"
-const extensionButtonInfoClass = "hi-info-button"
+const extensionButtonInfoClass = "hi-info-button";
+const extensionButtonSavedInfoClass = "hi-info-button-saved";
 
 window.addEventListener("load", function (event) {
     console.log('RealEstateHistory - Page loaded fully')
 
     //WHEN LIKE/UNLIKE-BUTTON CLICKED
-    let likeUnlikeButton = document.querySelector('.property-gallery__button--first');
+    let likeUnlikeButton = document.querySelector(likeUnlikeButtonSelector);
     var checkExist = setInterval(function () {
-        likeUnlikeButton = document.querySelector('.property-gallery__button--first');
+        likeUnlikeButton = document.querySelector(likeUnlikeButtonSelector);
         if (likeUnlikeButton) {
             console.log("Like button found!");
 
@@ -33,11 +35,10 @@ window.addEventListener("load", function (event) {
 
 async function handleClickLikeUnlike(event) {
     const likeUnlikeButton = event.currentTarget;
-    //const likeUnlikeButton = document.querySelector('.property-gallery__button--first');
 
     //check if liked or unliked
-    const isUnliked = likeUnlikeButton.children[0].classList.contains(unlikeButtonClassName)
-    let clickAction = isUnliked ? unlikeAction : likeAction
+    const isLiked = likeUnlikeButton.children[0].classList.contains(likeIconClassName)
+    let clickAction = isLiked ? unlikeAction : likeAction
 
     //tell background script that button was clicked
     await sendMessageToBackgroundScript(clickAction)
@@ -51,7 +52,6 @@ function sendMessageToBackgroundScript(action){
         action,
         url: window.location.href
     }
-    //console.log('Extension registered like/unlike')
     //send message to extension
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage(undefined, message, undefined, function (responseMessage) {
@@ -64,6 +64,12 @@ function sendMessageToBackgroundScript(action){
     })
 }
 
+function removeButtonInfo(){
+    //remove old button infotext if any
+    const allExtensionInfoButtons = document.querySelectorAll(`.${extensionButtonInfoClass}`);
+    allExtensionInfoButtons.forEach(button => button.remove())
+}
+
 async function updateLikeButtonInfoText(likeButton){
     let isListingSavedInStorage = undefined;
     try{
@@ -74,8 +80,7 @@ async function updateLikeButtonInfoText(likeButton){
     }
 
     //remove old button infotext if any
-    const allExtensionInfoButtons = document.querySelectorAll(`.${extensionButtonInfoClass}`);
-    allExtensionInfoButtons.forEach(button => button.remove())
+    removeButtonInfo();
 
     //Shows correct button info depending on if listing is saved or not
     if(isListingSavedInStorage){
@@ -88,7 +93,7 @@ async function updateLikeButtonInfoText(likeButton){
     function addSavedInfoToButton(button){
         //Add saved info from extension to button
         let savedIcon = document.createElement("I")
-        savedIcon.setAttribute("class", `fa fa-cloud-download property-gallery__button-icon ${extensionButtonInfoClass}`)
+        savedIcon.setAttribute("class", `fa fa-cloud-download property-gallery__button-icon ${extensionButtonInfoClass} ${extensionButtonSavedInfoClass}`)
         savedIcon.setAttribute("style", `color: ${savedColor}; margin-left:8px;`)
         button.appendChild(savedIcon)
                     

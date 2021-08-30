@@ -29,7 +29,7 @@ chrome.runtime.onInstalled.addListener(function () {
 
 function saveDataToListingObject(key, data, callback){
     //check if data exists
-    if(!data)
+    if(!data || data.images === [])
         return callback('No data');
     //TODO - check for bad formatted data and if data already existing
 
@@ -37,12 +37,12 @@ function saveDataToListingObject(key, data, callback){
     chrome.storage.local.set({[key]: data}, () => {
         const errors = chrome.runtime.lastError
         if(errors){
-            notifyUser('error', `Error while saving to database - ${errors}`)
+            sendNotificationInBrowser('error', `Error while saving to database - ${errors}`)
             return callback(errors)
         }
 
         console.log('Storage - added %o with key %s', data, key)
-        notifyUser('success', "Successfully saved listing", "Wanna see the images? - Just click the extension icon in the top right corner in Chrome")
+        sendNotificationInBrowser('success', "Successfully saved listing", "Wanna see the images? - Just click the extension icon in the top right corner in Chrome")
     });
     return callback(undefined, "saved data to listing with key " + key)
 }
@@ -112,6 +112,40 @@ function setIsNotLoading(status){
     sendMessage(isNotLoadingListingAction, {status: status})
 }
 
+/** Sets correct icon for extension based on the listing saved status.
+ * If the listing is saved, the icon will show one color.
+ * If the listing is not saved, the listing will show another color.
+ * Method is run when listingStorage could have been changed, i.e when tab is activated and on likeButton-press.
+*/
+async function setCorrectIcon(isSaved, sender){
+    const images = {
+        "saved": {
+            '16': "images/icon@16w.png",
+            '32': "images/icon@32w.png",
+            '48': "images/icon@48w.png",
+            '128': "images/icon@128w.png",
+        },
+        "unsaved": {
+            '16': "images/icon_unsaved@16w.png",
+            '32': "images/icon_unsaved@32w.png",
+            '48': "images/icon_unsaved@48w.png",
+            '128': "images/icon_unsaved@128w.png"
+        }
+    };
+    
+    let details = {tabId: sender.tab.id};
+    if(isSaved){
+        details = {
+            path: images["saved"], ...details
+        };
+    }else{
+        details = {
+            path: images["unsaved"], ...details
+        };
+    }
+    chrome.pageAction.setIcon(details, undefined)
+}
+  
 function sendMessage(action, options, callback = undefined){
     chrome.runtime.sendMessage({action: action, ...options}, (reply) => {
         if(callback){
@@ -126,7 +160,7 @@ function sendMessage(action, options, callback = undefined){
     })
 }
 
-function notifyUser(type, title, message){
+function sendNotificationInBrowser(type, title, message){
     //Check types
     if(!(typeof title == "string" && typeof message == "string"))
         return
@@ -152,18 +186,38 @@ function notifyUser(type, title, message){
 
 function handleError(text){
     console.error(text)
-    notifyUser('error', "Error while saving the listing", text)
+    sendNotificationInBrowser('error', "Error while saving the listing", text)
 }
 
 function getStorageData(listingPath, callback){
-    //get info about current id
-    chrome.storage.local.get(listingPath, (data) => callback(data[listingPath]));
+    //get storage of listingKey
+    chrome.storage.local.get(listingPath, (localData) => {
+        //Check standard data - local data
+        console.log("Getting data for listing with returned data: ", localData)
+        //if object, check if not empty
+        if(localData && !(Object.keys(localData).length === 0 && localData.constructor == Object)){
+            console.log("Returned as listingInfo:", localData[listingPath])
+            return callback(localData[listingPath])    
+        }
+        else{
+            //Check fallback storages (sync)
+            chrome.storage.sync.get(listingPath, (fallbackData) => {
+                callback(fallbackData[listingPath])
+            })
+        }
+    });
 }
+
+/** Returns if listing is saved in storage.
+ * @returns True if saved and false if not saved
+ * Never rejects the promise
+*/
 function isListingSaved(listingPath){
     return new Promise((resolve, reject) => {
         getStorageData(listingPath, (listingData) => {
-            if(!listingData || listingData == {})
-                return resolve(false)
+            if(!listingData || listingData == {} || listingData.images == []){
+                return resolve(false);
+            }
             return resolve(true)
         })
     })
@@ -200,6 +254,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, reply){
 
 /** Handlers for incoming messages */
 
+/** Handles if action is unkown to background script
+ * It could be used if an unknown method-string is sent. Unkown is any other than the predfined actions listed as variables in background.js such as `likeAction`, `unlikeAction` etc
+*/
 function handleUnknownAction(message, sender, reply){
     //TODO: if message not defined
     //reply
@@ -230,6 +287,8 @@ function handleUnlikeAction(message, sender, reply){
     //removeDataToListingObject
     const key = parseHemnetId(message.url)
     removeListingObject(key, (err, result) => handleOnMessageReply(err, result, 'like button unregistered in extension for url', sender, reply));
+    //Updating icon for sender
+    setCorrectIcon(false, sender);
 }
 
 function handleGetIsLoadingListingAction(message, sender, reply){
@@ -250,9 +309,12 @@ async function handleGetSavedListingStateAction(message, sender, reply){
     try{
         const isSaved = await isListingSaved(listingKey);
         console.log("handleGetSavedListingStateAction:", isSaved)
+        //Updating icon for sender
+        setCorrectIcon(isSaved, sender);
         return reply({isSaved})
     }catch(err){
+        //TODO: Should return error and handle it correctly
+        console.error("handleGetSavedListingStateAction had an error:", err)
         return reply({isSaved: false})
-        console.log("handleGetSavedListingStateAction:", false)
     }
 }
