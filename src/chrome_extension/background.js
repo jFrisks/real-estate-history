@@ -112,6 +112,40 @@ function setIsNotLoading(status){
     sendMessage(isNotLoadingListingAction, {status: status})
 }
 
+/** Sets correct icon for extension based on the listing saved status.
+ * If the listing is saved, the icon will show one color.
+ * If the listing is not saved, the listing will show another color.
+ * Method is run when listingStorage could have been changed, i.e when tab is activated and on likeButton-press.
+*/
+async function setCorrectIcon(isSaved, sender){
+    const images = {
+        "saved": {
+            '16': "images/icon@16w.png",
+            '32': "images/icon@32w.png",
+            '48': "images/icon@48w.png",
+            '128': "images/icon@128w.png",
+        },
+        "unsaved": {
+            '16': "images/icon_unsaved@16w.png",
+            '32': "images/icon_unsaved@32w.png",
+            '48': "images/icon_unsaved@48w.png",
+            '128': "images/icon_unsaved@128w.png"
+        }
+    };
+    
+    let details = {tabId: sender.tab.id};
+    if(isSaved){
+        details = {
+            path: images["saved"], ...details
+        };
+    }else{
+        details = {
+            path: images["unsaved"], ...details
+        };
+    }
+    chrome.pageAction.setIcon(details, undefined)
+}
+  
 function sendMessage(action, options, callback = undefined){
     chrome.runtime.sendMessage({action: action, ...options}, (reply) => {
         if(callback){
@@ -275,6 +309,8 @@ async function handleGetSavedListingStateAction(message, sender, reply){
     try{
         const isSaved = await isListingSaved(listingKey);
         console.log("handleGetSavedListingStateAction:", isSaved)
+        //Updating icon for sender
+        setCorrectIcon(isSaved, sender);
         return reply({isSaved})
     }catch(err){
         //TODO: Should return error and handle it correctly

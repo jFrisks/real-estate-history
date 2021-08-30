@@ -10,10 +10,10 @@
     "page_action": {
         "default_popup": "popup.html",
         "default_icon": {
-            "16": "images/icon@16w.png",
-            "32": "images/icon@32w.png",
-            "48": "images/icon@48w.png",
-            "128": "images/icon@128w.png"
+            "16": "images/icon_unsaved@16w.png",
+            "32": "images/icon_unsaved@32w.png",
+            "48": "images/icon_unsaved@48w.png",
+            "128": "images/icon_unsaved@128w.png"
         }
     },
     "content_scripts": [
