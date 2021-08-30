@@ -29,7 +29,7 @@ chrome.runtime.onInstalled.addListener(function () {
 
 function saveDataToListingObject(key, data, callback){
     //check if data exists
-    if(!data)
+    if(!data || data.images === [])
         return callback('No data');
     //TODO - check for bad formatted data and if data already existing
 
@@ -156,8 +156,22 @@ function handleError(text){
 }
 
 function getStorageData(listingPath, callback){
-    //get info about current id
-    chrome.storage.local.get(listingPath, (data) => callback(data[listingPath]));
+    //get storage of listingKey
+    chrome.storage.local.get(listingPath, (localData) => {
+        //Check standard data - local data
+        console.log("Getting data for listing with returned data: ", localData)
+        //if object, check if not empty
+        if(localData && !(Object.keys(localData).length === 0 && localData.constructor == Object)){
+            console.log("Returned as listingInfo:", localData[listingPath])
+            return callback(localData[listingPath])    
+        }
+        else{
+            //Check fallback storages (sync)
+            chrome.storage.sync.get(listingPath, (fallbackData) => {
+                callback(fallbackData[listingPath])
+            })
+        }
+    });
 }
 
 /** Returns if listing is saved in storage.
@@ -167,8 +181,9 @@ function getStorageData(listingPath, callback){
 function isListingSaved(listingPath){
     return new Promise((resolve, reject) => {
         getStorageData(listingPath, (listingData) => {
-            if(!listingData || listingData == {})
-                return resolve(false)
+            if(!listingData || listingData == {} || listingData.images == []){
+                return resolve(false);
+            }
             return resolve(true)
         })
     })
@@ -238,6 +253,8 @@ function handleUnlikeAction(message, sender, reply){
     //removeDataToListingObject
     const key = parseHemnetId(message.url)
     removeListingObject(key, (err, result) => handleOnMessageReply(err, result, 'like button unregistered in extension for url', sender, reply));
+    //Updating icon for sender
+    setCorrectIcon(false, sender);
 }
 
 function handleGetIsLoadingListingAction(message, sender, reply){
