@@ -18,7 +18,7 @@
     },
     "content_scripts": [
         {
-            "matches": ["*://*.hemnet.se/bostad/*"],
+            "matches": ["*://*.hemnet.se/bostad/*", "*://*.hemnet.se/salda/*"],
             "run_at": "document_end",
             "js": ["contentScript.js"]
         }

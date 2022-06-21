@@ -5,6 +5,8 @@ const likeIconClassName = "save-listing-button__saved-icon";
 const likeUnlikeButtonSelector = ".property-gallery__actionbar .save-listing-button";
 const likeAction = "likeButtonClicked"
 const unlikeAction = "unlikeButtonClicked"
+const propertyIdAction = "propertyId"
+const currentPropertyIdAction = "currentPropertId"
 const getSavedListingStateAction = "getSavedListingState";
 const hiSavedText = "Sparad i HiBo"
 const hiUnsavedText = "Osparad i HiBo"
@@ -15,7 +17,7 @@ const extensionButtonSavedInfoClass = "hi-info-button-saved";
 
 window.addEventListener("load", function (event) {
     console.log('RealEstateHistory - Page loaded fully')
-
+    
     //WHEN LIKE/UNLIKE-BUTTON CLICKED
     let likeUnlikeButton = document.querySelector(likeUnlikeButtonSelector);
     var checkExist = setInterval(function () {
@@ -32,6 +34,11 @@ window.addEventListener("load", function (event) {
         }
     }, 100); // check every 100ms
 });
+
+/** A very sketchy way to retrieve the property-id of a hemnet listing. Using script innerHTML and regex. */
+function getPropertyId(){
+    return Array.from(document.scripts).map(script => script.innerHTML).join(' ').match('"property"\s*:\s*{[^}]*"id"\s*:\s*([0-9]*)[,}]')[1]
+}
 
 async function handleClickLikeUnlike(event) {
     const likeUnlikeButton = event.currentTarget;
@@ -50,7 +57,8 @@ async function handleClickLikeUnlike(event) {
 function sendMessageToBackgroundScript(action){
     const message = {
         action,
-        url: window.location.href
+        url: window.location.href,
+        property_id: getPropertyId()
     }
     //send message to extension
     return new Promise((resolve, reject) => {
@@ -128,4 +136,36 @@ async function getIsListingSavedInStorage(){
     }
     //get result from background 
     return isSaved
+}
+
+/**
+ * Message listener that listens for actions made by contentsctipt
+ * Actions are prewritten with handlers that take care of the action
+ */
+ chrome.runtime.onMessage.addListener(function(message, sender, reply){
+    switch(message.action){
+        case propertyIdAction:
+            handlePropertyIdAction(message, sender, reply);
+            break;
+        default:
+            handleUnknownAction(message, sender, reply);
+            break;
+    }
+    return true;
+})
+
+/** Handles if action is unkown to background script
+ * It could be used if an unknown method-string is sent. Unkown is any other than the predfined actions listed as variables in background.js such as `likeAction`, `unlikeAction` etc
+*/
+function handleUnknownAction(message, sender, reply){
+    //TODO: if message not defined
+    //reply
+    const msg = 'could not understand message sent to extension'
+    reply(msg)
+}
+
+function handlePropertyIdAction(message, sender, reply){
+    const property_id = getPropertyId();
+    const options = {property_id}
+    reply(options)
 }

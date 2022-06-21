@@ -15,12 +15,19 @@ var isLoadingListing = false
 chrome.runtime.onInstalled.addListener(function () {
     chrome.declarativeContent.onPageChanged.removeRules(undefined, function () {
         chrome.declarativeContent.onPageChanged.addRules([{
-            conditions: [new chrome.declarativeContent.PageStateMatcher({
-                pageUrl: { 
-                    hostEquals: 'www.hemnet.se',
-                    pathContains: 'bostad/'
-                },
-            })
+            conditions: [
+                new chrome.declarativeContent.PageStateMatcher({
+                    pageUrl: { 
+                        hostEquals: 'www.hemnet.se',
+                        pathContains: 'bostad/'
+                    },
+                }),
+                new chrome.declarativeContent.PageStateMatcher({
+                    pageUrl: { 
+                        hostEquals: 'www.hemnet.se',
+                        pathContains: 'salda/'
+                    },
+                })
             ],
             actions: [new chrome.declarativeContent.ShowPageAction()]
         }]);
@@ -70,34 +77,54 @@ function parseHemnetId(url){
     return new URL(url).pathname.split('/')[2];
 }
 
-function getListingThroughAPI(path, callback){
-    const apiServer = isDev ? 'http://localhost:3000' : 'https://real-estate-history-server.herokuapp.com';
-    const action = 'getListing'
-    const apiURL = `${apiServer}/${action}/${path}`
-
+function getListingThroughAPI({url, property_id}, callback){
+    const apiServer = isDev ? 'http://localhost:3000' : 'https://f8jlejy4f8.execute-api.us-east-2.amazonaws.com/api/listings';
+    const apiURL = `${apiServer}?url=${url}&property_id=${property_id}`;
+    const retryDelay = 20000;
+    let retries = 1;
     setIsLoading();
+    callApi();
 
-    //creating api call to apiURL from above and handling errors
-    let xhr = new XMLHttpRequest();
-    console.log(`Getting XHR Request from: ${apiURL}`)
-    xhr.open("GET", apiURL, true);
-    xhr.onload = function(e){
-        if(xhr.readyState === 4){
-            if(xhr.status === 200){
-                let response = JSON.parse(xhr.responseText);
-                callback(undefined, response);
-            }else{
-                handleError(xhr.statusText)
-                callback(xhr.statusText)
+    function callApi(){ 
+        //creating api call to apiURL from above and handling errors
+        let xhr = new XMLHttpRequest();
+        console.log(`Getting XHR Request from: ${apiURL}`)
+        xhr.open("GET", apiURL, true);
+        xhr.onload = function(e){
+            if(xhr.readyState === 4){
+                //TODO: Check if 304 -> need to check again in some time...
+                if(xhr.status === 200){
+                    let response = JSON.parse(xhr.responseText);
+                    callback(undefined, response);
+                    setIsNotLoading(xhr.statusText);
+                }else if(xhr.status == 404){
+                    //Resource does not exist but backend will try to fetch it. So we test later
+                    //retry
+                    if(retries--){
+                        //TODO: Retry after xx seconds
+                        setTimeout(()=>{
+                            console.log("DEBUG: Retrying to call api")
+                            callApi();
+                        }, retryDelay)
+                    }else{
+                        handleError("Unable to fetch api after a number of retrites")
+                        callback(xhr.statusText)
+                        setIsNotLoading(xhr.statusText);
+                    }
+                }else{
+                    handleError(xhr.statusText)
+                    callback(xhr.statusText)
+                    setIsNotLoading(xhr.statusText);
+                }
             }
+        }
+        xhr.onerror = function(e){
+            handleError(xhr.statusText)
+            callback(xhr.statusText)
             setIsNotLoading(xhr.statusText);
         }
+        xhr.send(null);
     }
-    xhr.onerror = function(e){
-        handleError(xhr.statusText)
-        callback(xhr.statusText)
-    }
-    xhr.send(null);
 }
 
 function setIsLoading(){
@@ -185,24 +212,24 @@ function sendNotificationInBrowser(type, title, message){
 }
 
 function handleError(text){
-    console.error(text)
     sendNotificationInBrowser('error', "Error while saving the listing", text)
 }
 
-function getStorageData(listingPath, callback){
+function getStorageData(property_id, callback){
     //get storage of listingKey
-    chrome.storage.local.get(listingPath, (localData) => {
+    const key = property_id;
+    chrome.storage.local.get(key, (localData) => {
         //Check standard data - local data
         console.log("Getting data for listing with returned data: ", localData)
         //if object, check if not empty
         if(localData && !(Object.keys(localData).length === 0 && localData.constructor == Object)){
-            console.log("Returned as listingInfo:", localData[listingPath])
-            return callback(localData[listingPath])    
+            console.log("Returned as listingInfo:", localData[key])
+            return callback(localData[key])    
         }
         else{
             //Check fallback storages (sync)
-            chrome.storage.sync.get(listingPath, (fallbackData) => {
-                callback(fallbackData[listingPath])
+            chrome.storage.sync.get(key, (fallbackData) => {
+                callback(fallbackData[key])
             })
         }
     });
@@ -212,9 +239,9 @@ function getStorageData(listingPath, callback){
  * @returns True if saved and false if not saved
  * Never rejects the promise
 */
-function isListingSaved(listingPath){
+function isListingSaved(key){
     return new Promise((resolve, reject) => {
-        getStorageData(listingPath, (listingData) => {
+        getStorageData(key, (listingData) => {
             if(!listingData || listingData == {} || listingData.images == []){
                 return resolve(false);
             }
@@ -266,18 +293,18 @@ function handleUnknownAction(message, sender, reply){
 
 function handleLikeAction(message, sender, reply){
     //likebutton
-    const key = parseHemnetId(message.url)
     //THIS IS MOCKUP DATA
     //const data = testListingData
     //handleGetListingSuccess(data);
-    getListingThroughAPI(message.url, (err, data) => {
+    const property_id = message.property_id;
+    getListingThroughAPI({url: message.url, property_id}, (err, data) => {
         //check for error
         if(err){
             handleError(err)
             return reply(err);
         }else{
             //save retrieved data to local storage
-            saveDataToListingObject(key, data[key], (err, result) => handleOnMessageReply(err,result, 'like button registered in extension for url', sender, reply));
+            saveDataToListingObject(property_id, data, (err, result) => handleOnMessageReply(err,result, 'like button registered in extension for url', sender, reply));
         }
     });
 }
@@ -285,7 +312,7 @@ function handleLikeAction(message, sender, reply){
 function handleUnlikeAction(message, sender, reply){
     //unlikebutton
     //removeDataToListingObject
-    const key = parseHemnetId(message.url)
+    const key = message.property_id;
     removeListingObject(key, (err, result) => handleOnMessageReply(err, result, 'like button unregistered in extension for url', sender, reply));
     //Updating icon for sender
     setCorrectIcon(false, sender);
@@ -302,12 +329,13 @@ function handleGetIsLoadingListingAction(message, sender, reply){
 }
 
 async function handleGetSavedListingStateAction(message, sender, reply){
+    const property_id = message.property_id;
     const listingKey = parseHemnetId(message.url)
     console.log("Checking if key is saved in DB", listingKey)
-
     //Check if listing is saved, else reply with error
     try{
-        const isSaved = await isListingSaved(listingKey);
+        const key = property_id;
+        const isSaved = await isListingSaved(key);
         console.log("handleGetSavedListingStateAction:", isSaved)
         //Updating icon for sender
         setCorrectIcon(isSaved, sender);

@@ -1,6 +1,8 @@
 const isLoadingListingAction = "isLoadingListing";
 const isNotLoadingListingAction = "isNotLoadingListing";
 const getIsLoadingListingAction = "getIsLoadingListing";
+const propertyIdAction = "propertyId"
+const currentPropertyIdAction = "currentPropertId"
 const showDetails = false;
 
 function setupPopup(){
@@ -45,7 +47,9 @@ function renderListingInfo(){
         }
     }
 
-    getTabUrl((err, listingPath) => getStorageData(listingPath, handleGetStorageCompleted));
+    getPropertyId().then((property_id) => {
+        getStorageData(property_id, handleGetStorageCompleted)
+    })
 }
 
 //private
@@ -129,31 +133,34 @@ function getTabUrl(callback){
         const tabUrl = tab.url
         if(!tabUrl)
             return callback('tabUrl not deifned');
-        
-        const listingPath = parseHemnetId(tabUrl)
-        console.log(listingPath)
-        callback(undefined, listingPath)
+        const key = parseHemnetId(tabUrl)
+        callback(undefined, key)
         
     })
+}
+/** Call for property id */
+async function getPropertyId(){
+    const {property_id} = await sendMessageToActiveContentScript(propertyIdAction);
+    return property_id;
 }
 
 /** Gets listing data from storage by using listingKeyPath.
  * If no data is existent, the method will try fallback storage from depricated versions (storage.sync)
  */
-function getStorageData(listingPath, callback){
+function getStorageData(key, callback){
     //get storage of listingKey
-    chrome.storage.local.get(listingPath, (localData) => {
+    chrome.storage.local.get(key, (localData) => {
         //Check standard data - local data
         console.log("Getting data for listing with returned data: ", localData)
         //if object, check if not empty
         if(localData && !(Object.keys(localData).length === 0 && localData.constructor == Object)){
-            console.log("Returned as listingInfo:", localData[listingPath])
-            return callback(localData[listingPath])    
+            console.log("Returned as listingInfo:", localData[key])
+            return callback(localData[key])    
         }
         else{
             //Check fallback storages (sync)
-            chrome.storage.sync.get(listingPath, (fallbackData) => {
-                callback(fallbackData[listingPath])
+            chrome.storage.sync.get(key, (fallbackData) => {
+                callback(fallbackData[key])
             })
         }
     });
@@ -187,3 +194,21 @@ chrome.runtime.onMessage.addListener(function(message, sender, reply){
     }
     return true;
 })
+
+function sendMessageToActiveContentScript(action){
+    const message = {
+        action
+    }
+    //send message to extension
+    return new Promise((resolve, reject) => {
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            chrome.tabs.sendMessage(tabs[0].id, message, function (responseMessage) {
+                //calback
+                if(!responseMessage)
+                    return reject(chrome.runtime.lastError)
+                //console.log(responseMessage)
+                return resolve(responseMessage)
+            })
+        })
+    })
+}
