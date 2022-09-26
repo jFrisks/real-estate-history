@@ -3,6 +3,7 @@
 console.log('RealEstateHistory - Load contentcript')
 const likeIconClassName = "save-listing-button__saved-icon";
 const likeUnlikeButtonSelector = ".property-gallery__actionbar .save-listing-button";
+const loadedListingPageAction = "loadedListingPageAction"
 const likeAction = "likeButtonClicked"
 const unlikeAction = "unlikeButtonClicked"
 const propertyIdAction = "propertyId"
@@ -17,6 +18,9 @@ const extensionButtonSavedInfoClass = "hi-info-button-saved";
 
 window.addEventListener("load", function (event) {
     console.log('RealEstateHistory - Page loaded fully')
+    //SAVE LISTING (save url by using GET listing endpoint)
+    //tell background script that button was clicked
+    sendMessageToBackgroundScript(loadedListingPageAction);
     
     //WHEN LIKE/UNLIKE-BUTTON CLICKED
     let likeUnlikeButton = document.querySelector(likeUnlikeButtonSelector);
@@ -27,7 +31,7 @@ window.addEventListener("load", function (event) {
 
             //Update likebutton to see if saved in HiHistory
             updateLikeButtonInfoText(likeUnlikeButton)
-
+            
             //Click event listener
             likeUnlikeButton.addEventListener('click', (event) => handleClickLikeUnlike(event), false)
             clearInterval(checkExist);
