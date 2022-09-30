@@ -30,20 +30,19 @@ function renderLogo(){
 function renderListingInfo(){
     function handleGetStorageCompleted(data) {
         //handling no data
-        if(!data){
+        if(!data || !isContainingImages(data)){
             renderMissingHistoryInfo();
             return;
         }
         
         removeRenderMissingHistoryInfo();
+
+        //render images if existing
+        renderListingImages(data.images);
+        
         //render details
         if(showDetails){
             renderListingDetails(data);
-        }
-        //render images if existing
-        console.log('storage gotten', data);
-        if(data.images){
-            renderListingImages(data.images)
         }
     }
 
@@ -211,4 +210,9 @@ function sendMessageToActiveContentScript(action){
             })
         })
     })
+}
+
+function isContainingImages(data){
+    // Is not null & Is not empty object & Contains images attribute & contains 1 or more image
+    return (data) && (data !== {}) && (data.images) && (data.images.length > 0)
 }

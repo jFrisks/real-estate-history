@@ -2,6 +2,7 @@
 const isDev = false;
 const likeAction = "likeButtonClicked";
 const unlikeAction = "unlikeButtonClicked";
+const loadedListingPageAction = "loadedListingPageAction"
 const isLoadingListingAction = "isLoadingListing";
 const isNotLoadingListingAction = "isNotLoadingListing";
 const getIsLoadingListingAction = "getIsLoadingListing";
@@ -36,7 +37,7 @@ chrome.runtime.onInstalled.addListener(function () {
 
 function saveDataToListingObject(key, data, callback){
     //check if data exists
-    if(!data || data.images === [])
+    if(!data || !data.images || data.images === [])
         return callback('No data');
     //TODO - check for bad formatted data and if data already existing
 
@@ -77,11 +78,11 @@ function parseHemnetId(url){
     return new URL(url).pathname.split('/')[2];
 }
 
-function getListingThroughAPI({url, property_id}, callback){
+function getListingThroughAPI({url, property_id}, retries, callback){
     const apiServer = isDev ? 'http://localhost:3000' : 'https://f8jlejy4f8.execute-api.us-east-2.amazonaws.com/api/listings';
     const apiURL = `${apiServer}?url=${url}&property_id=${property_id}`;
     const retryDelay = 20000;
-    let retries = 1;
+    //let retries = 1;
     setIsLoading();
     callApi();
 
@@ -98,6 +99,8 @@ function getListingThroughAPI({url, property_id}, callback){
                     callback(undefined, response);
                     setIsNotLoading(xhr.statusText);
                 }else if(xhr.status == 404){
+                    //Set is not loading (but we will scretely retry soon)
+                    setIsNotLoading(xhr.statusText);
                     //Resource does not exist but backend will try to fetch it. So we test later
                     //retry
                     if(retries--){
@@ -229,10 +232,17 @@ function getStorageData(property_id, callback){
         else{
             //Check fallback storages (sync)
             chrome.storage.sync.get(key, (fallbackData) => {
-                callback(fallbackData[key])
+                return callback(fallbackData[key])
             })
         }
     });
+}
+
+//TODO: Double check all edge cases
+function deleteLocalListing(){
+    chrome.storage.local.clear(key, (localData) => {
+        console.log("Deleted local data for listing key: ", key)
+    })
 }
 
 /** Returns if listing is saved in storage.
@@ -242,7 +252,11 @@ function getStorageData(property_id, callback){
 function isListingSaved(key){
     return new Promise((resolve, reject) => {
         getStorageData(key, (listingData) => {
-            if(!listingData || listingData == {} || listingData.images == []){
+            if(!listingData){
+                return resolve(false);
+            }else if(listingData == {} || !listingData.images || listingData.images == []){
+                // Saved but not existing images -> Delete it
+                deleteLocalListing();
                 return resolve(false);
             }
             return resolve(true)
@@ -262,6 +276,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, reply){
             break;
         case unlikeAction:
             handleUnlikeAction(message, sender, reply);
+            break;
+        case loadedListingPageAction:
+            handleLoadedListingPageAction(message, sender, reply);
             break;
         case getIsLoadingListingAction:
             handleGetIsLoadingListingAction(message, sender, reply);
@@ -297,7 +314,8 @@ function handleLikeAction(message, sender, reply){
     //const data = testListingData
     //handleGetListingSuccess(data);
     const property_id = message.property_id;
-    getListingThroughAPI({url: message.url, property_id}, (err, data) => {
+    const retries = 1;
+    getListingThroughAPI({url: message.url, property_id}, retries, (err, data) => {
         //check for error
         if(err){
             handleError(err)
@@ -316,6 +334,34 @@ function handleUnlikeAction(message, sender, reply){
     removeListingObject(key, (err, result) => handleOnMessageReply(err, result, 'like button unregistered in extension for url', sender, reply));
     //Updating icon for sender
     setCorrectIcon(false, sender);
+}
+
+/** Handles when a page has been loaded by setting correct icon,
+ * and calling API which, if successful, saves a listing to local
+ * storage for popup to use. */
+async function handleLoadedListingPageAction(message, sender, reply){
+    const property_id = message.property_id;
+    const retries = 0;
+
+    //set icon
+    isListingSaved(property_id).then(isSaved => {
+        setCorrectIcon(isSaved, sender);
+    });
+
+    //call api and set icon if successful
+    getListingThroughAPI({url: message.url, property_id}, retries, (err, data) => {
+        //check for error
+        if(err){
+            handleError(err)
+            return reply(err);
+        }else{
+            // Save it
+            saveDataToListingObject(property_id, data, (err, result) => {
+                handleOnMessageReply(err,result, 'loaded page and saved for url', sender, reply)
+                //setCorrectIcon(!err, sender);
+            });
+        }
+    });
 }
 
 function handleGetIsLoadingListingAction(message, sender, reply){
