@@ -358,7 +358,11 @@ async function handleLoadedListingPageAction(message, sender, reply){
             // Save it
             saveDataToListingObject(property_id, data, (err, result) => {
                 handleOnMessageReply(err,result, 'loaded page and saved for url', sender, reply)
-                //setCorrectIcon(!err, sender);
+                
+                //set icon
+                isListingSaved(property_id).then(isSaved => {
+                    setCorrectIcon(isSaved, sender);
+                });
             });
         }
     });

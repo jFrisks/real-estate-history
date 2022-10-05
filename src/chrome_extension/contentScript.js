@@ -20,7 +20,9 @@ window.addEventListener("load", function (event) {
     console.log('RealEstateHistory - Page loaded fully')
     //SAVE LISTING (save url by using GET listing endpoint)
     //tell background script that button was clicked
-    sendMessageToBackgroundScript(loadedListingPageAction);
+    sendMessageToBackgroundScript(loadedListingPageAction).then((data) => {
+        updateLikeButtonInfoText(likeUnlikeButton)
+    })
     
     //WHEN LIKE/UNLIKE-BUTTON CLICKED
     let likeUnlikeButton = document.querySelector(likeUnlikeButtonSelector);
