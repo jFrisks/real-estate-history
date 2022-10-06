@@ -20,7 +20,8 @@
         {
             "matches": ["*://*.hemnet.se/bostad/*", "*://*.hemnet.se/salda/*"],
             "run_at": "document_end",
-            "js": ["contentScript.js"]
+            "js": ["contentScript.js"],
+            "css": ["content.css"]
         }
     ],
     "options_page": "options.html",

@@ -3,6 +3,7 @@
 console.log('RealEstateHistory - Load contentcript')
 const likeIconClassName = "save-listing-button__saved-icon";
 const likeUnlikeButtonSelector = ".property-gallery__actionbar .save-listing-button";
+const listingRemovedButtonSelector = ".qa-removed-listing-button";
 const loadedListingPageAction = "loadedListingPageAction"
 const likeAction = "likeButtonClicked"
 const unlikeAction = "unlikeButtonClicked"
@@ -15,6 +16,7 @@ const savedColor = "#2ef29a"
 const unsavedColor = "#f24f2e"
 const extensionButtonInfoClass = "hi-info-button";
 const extensionButtonSavedInfoClass = "hi-info-button-saved";
+const floatingHiboButtonClass = "hibo-floating";
 
 window.addEventListener("load", function (event) {
     console.log('RealEstateHistory - Page loaded fully')
@@ -37,6 +39,12 @@ window.addEventListener("load", function (event) {
             //Click event listener
             likeUnlikeButton.addEventListener('click', (event) => handleClickLikeUnlike(event), false)
             clearInterval(checkExist);
+        }
+        const listingRemovedButton = document.querySelector(listingRemovedButtonSelector);
+        if(listingRemovedButton){
+            console.debug("Add a floating button after x time if not found like button");
+            clearInterval(checkExist);
+            //renderFloatingHiboButton(); //TODO: Add new content script popup before able to show button
         }
     }, 100); // check every 100ms
 });
@@ -174,4 +182,18 @@ function handlePropertyIdAction(message, sender, reply){
     const property_id = getPropertyId();
     const options = {property_id}
     reply(options)
+}
+
+function renderFloatingHiboButton(){
+    let savedIcon = document.createElement("div")
+    savedIcon.setAttribute("class", `${floatingHiboButtonClass}`)
+
+    //savedIcon.innerText = "HiBo\nView Image"
+
+    let logo = document.createElement("img")
+    logo.setAttribute("class", "hibo-floating-image");
+    logo.src = 'https://d1cnritjll8te5.cloudfront.net/icon%40128w.png';
+    savedIcon.appendChild(logo);
+
+    document.body.appendChild(savedIcon)
 }
