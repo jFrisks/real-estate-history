@@ -190,9 +190,9 @@ function sendMessage(action, options, callback = undefined){
     })
 }
 
-function sendNotificationInBrowser(type, title, message){
-    //Check types
-    if(!(typeof title == "string" && typeof message == "string"))
+function sendNotificationInBrowser(type, title, message, activated = false){
+    //Check if activted and types
+    if(activated || !(typeof title == "string" && typeof message == "string"))
         return
 
     let options = {

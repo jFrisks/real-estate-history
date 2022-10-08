@@ -42,7 +42,6 @@ window.addEventListener("load", function (event) {
         }
         const listingRemovedButton = document.querySelector(listingRemovedButtonSelector);
         if(listingRemovedButton){
-            console.debug("Add a floating button after x time if not found like button");
             clearInterval(checkExist);
             //renderFloatingHiboButton(); //TODO: Add new content script popup before able to show button
         }
