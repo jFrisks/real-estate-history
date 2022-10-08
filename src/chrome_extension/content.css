@@ -1,0 +1,25 @@
+.hibo-floating {
+    background-color:#e5ebe0;
+    position: fixed;
+    width: 100px;
+    height: 100px;
+    bottom: 2vw;
+    left: 2vw;
+    border-radius: 50%;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.5s ease-out 100ms;
+}
+
+.hibo-floating:hover {
+    background-color:#f0f3ed;
+}
+
+.hibo-floating-image {
+    height: 60px;
+    align-self: center;
+    margin-bottom: -15px;
+}

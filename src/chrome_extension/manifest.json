@@ -1,8 +1,8 @@
 {
     "name": "Hi Bostäder - Bilder på sålda bostäder",
-    "version": "0.0.10",
+    "version": "0.0.11",
     "description": "Se bilder på sålda bostäder som du har sparat på Hemnet. Bilder sparas automatiskt när du sparar en bostad på Hemnet.",
-    "permissions": ["activeTab", "declarativeContent","storage", "notifications"],
+    "permissions": ["activeTab", "declarativeContent","storage"],
     "background": {
         "scripts": ["background.js"],
         "persistent": false

@@ -190,9 +190,9 @@ function sendMessage(action, options, callback = undefined){
     })
 }
 
-function sendNotificationInBrowser(type, title, message){
-    //Check types
-    if(!(typeof title == "string" && typeof message == "string"))
+function sendNotificationInBrowser(type, title, message, activated = false){
+    //Check if activted and types
+    if(activated || !(typeof title == "string" && typeof message == "string"))
         return
 
     let options = {
@@ -358,7 +358,11 @@ async function handleLoadedListingPageAction(message, sender, reply){
             // Save it
             saveDataToListingObject(property_id, data, (err, result) => {
                 handleOnMessageReply(err,result, 'loaded page and saved for url', sender, reply)
-                //setCorrectIcon(!err, sender);
+                
+                //set icon
+                isListingSaved(property_id).then(isSaved => {
+                    setCorrectIcon(isSaved, sender);
+                });
             });
         }
     });
