@@ -18,13 +18,18 @@ const extensionButtonInfoClass = "hi-info-button";
 const extensionButtonSavedInfoClass = "hi-info-button-saved";
 const floatingHiboButtonClass = "hibo-floating";
 
-window.addEventListener("load", function (event) {
+window.addEventListener("load", async function (event) {
     console.log('RealEstateHistory - Page loaded fully')
     //SAVE LISTING (save url by using GET listing endpoint)
     //tell background script that button was clicked
     sendMessageToBackgroundScript(loadedListingPageAction).then((data) => {
         updateLikeButtonInfoText(likeUnlikeButton)
     })
+
+    const isSaved = await getIsListingSavedInStorage();
+    if(isSaved){
+        renderFloatingHiboButton(); //TODO: Add new content script popup before able to show button
+    }
     
     //WHEN LIKE/UNLIKE-BUTTON CLICKED
     let likeUnlikeButton = document.querySelector(likeUnlikeButtonSelector);
@@ -35,7 +40,7 @@ window.addEventListener("load", function (event) {
 
             //Update likebutton to see if saved in HiHistory
             updateLikeButtonInfoText(likeUnlikeButton)
-            
+    
             //Click event listener
             likeUnlikeButton.addEventListener('click', (event) => handleClickLikeUnlike(event), false)
             clearInterval(checkExist);
@@ -43,7 +48,6 @@ window.addEventListener("load", function (event) {
         const listingRemovedButton = document.querySelector(listingRemovedButtonSelector);
         if(listingRemovedButton){
             clearInterval(checkExist);
-            //renderFloatingHiboButton(); //TODO: Add new content script popup before able to show button
         }
     }, 100); // check every 100ms
 });
@@ -105,7 +109,7 @@ async function updateLikeButtonInfoText(likeButton){
 
     //Shows correct button info depending on if listing is saved or not
     if(isListingSavedInStorage){
-        addSavedInfoToButton(likeButton)
+        addSavedInfoToButton(likeButton);
     }else{
         addUnSavedInfoToButton(likeButton)
     }
@@ -184,15 +188,67 @@ function handlePropertyIdAction(message, sender, reply){
 }
 
 function renderFloatingHiboButton(){
-    let savedIcon = document.createElement("div")
+    let savedIcon = document.createElement("a")
     savedIcon.setAttribute("class", `${floatingHiboButtonClass}`)
+    const property_id = getPropertyId();
+    const url = `https://hejbo.se/bostader/${property_id}`;
+    savedIcon.setAttribute("href", url)
 
     //savedIcon.innerText = "HiBo\nView Image"
 
     let logo = document.createElement("img")
     logo.setAttribute("class", "hibo-floating-image");
-    logo.src = 'https://d1cnritjll8te5.cloudfront.net/icon%40128w.png';
+    logo.src = 'https://hejbo.se/assets/img/hejbo-logo-full.png';
     savedIcon.appendChild(logo);
 
+    // TODO: Fix this href clikc working while dragging
+    // makeElementDraggable(savedIcon);
+
     document.body.appendChild(savedIcon)
+}
+
+function addNewButton(node){
+    console.log("cloned")
+    const clonedNode = node.cloneNode(true);
+}
+
+// credits: https://javascript.info/mouse-drag-and-drop
+function makeElementDraggable(floatingElement){
+    floatingElement.onmousedown = function(event) {
+
+        let shiftX = event.clientX - floatingElement.getBoundingClientRect().left;
+        let shiftY = event.clientY - floatingElement.getBoundingClientRect().top;
+      
+        floatingElement.style.position = 'fixed';
+        floatingElement.style.zIndex = 1000;
+        document.body.append(floatingElement);
+      
+        // moveAt(event.pageX, event.pageY);
+        moveAt(event.clientX, event.clientY);
+      
+        // moves the floatingElement at (pageX, pageY) coordinates
+        // taking initial shifts into account
+        function moveAt(pageX, pageY) {
+          floatingElement.style.left = pageX - shiftX + 'px';
+          floatingElement.style.top = pageY - shiftY + 'px';
+        }
+      
+        function onMouseMove(event) {
+          moveAt(event.clientX, event.clientY);
+        }
+      
+        // move the floatingElement on mousemove
+        document.addEventListener('mousemove', onMouseMove);
+      
+        // drop the floatingElement, remove unneeded handlers
+        floatingElement.onmouseup = function() {
+          document.removeEventListener('mousemove', onMouseMove);
+          floatingElement.onmouseup = null;
+        };
+      
+      };
+      
+      floatingElement.ondragstart = function() {
+        return false;
+      };
 }

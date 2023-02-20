@@ -1,25 +1,40 @@
 .hibo-floating {
-    background-color:#e5ebe0;
+    background-color:#ffffff;
     position: fixed;
-    width: 100px;
-    height: 100px;
-    bottom: 2vw;
-    left: 2vw;
-    border-radius: 50%;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
-    text-align: center;
+    padding: 10px;
     display: flex;
-    justify-content: center;
+    width: 75px;
+    height: 75px;
+    bottom: 2vw;
+    left: 90vw;
+    border-radius: 50%;
+    /* box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px; */
+    box-shadow: 1px 1px 16px 0px rgba(0,0,0,0.4);
+    -webkit-box-shadow: 1px 1px 16px 0px rgba(0,0,0,0.4);
+    -moz-box-shadow: 1px 1px 16px 0px rgba(0,0,0,0.4);
+    text-align: center;
     align-items: center;
-    transition: background-color 0.5s ease-out 100ms;
+    transition: background-color 0.2s ease-out 100ms;
+    z-index: 999;
+    cursor: pointer;
 }
 
 .hibo-floating:hover {
-    background-color:#f0f3ed;
+    background-color:#4b5945;
+}
+.hibo-floating:hover .hibo-floating-image {
+    filter: brightness(0) invert(1);
+    transition: all 0.2s ease-out 100ms;
 }
 
 .hibo-floating-image {
-    height: 60px;
+    height: fit-content;
+    width: 100%;
     align-self: center;
-    margin-bottom: -15px;
+    /* margin-bottom: -15px; */
+}
+
+.hibo-floating-image:hover {
+    filter: brightness(0) invert(1);
+    transition: all 0.2s ease-out 100ms;
 }
