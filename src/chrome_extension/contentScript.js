@@ -17,6 +17,7 @@ const unsavedColor = "#f24f2e"
 const extensionButtonInfoClass = "hi-info-button";
 const extensionButtonSavedInfoClass = "hi-info-button-saved";
 const floatingHiboButtonClass = "hibo-floating";
+const soldUrlRegex = '/salda';
 
 window.addEventListener("load", async function (event) {
     console.log('RealEstateHistory - Page loaded fully')
@@ -26,11 +27,6 @@ window.addEventListener("load", async function (event) {
         updateLikeButtonInfoText(likeUnlikeButton)
     })
 
-    const isSaved = await getIsListingSavedInStorage();
-    if(isSaved){
-        renderFloatingHiboButton(); //TODO: Add new content script popup before able to show button
-    }
-    
     //WHEN LIKE/UNLIKE-BUTTON CLICKED
     let likeUnlikeButton = document.querySelector(likeUnlikeButtonSelector);
     var checkExist = setInterval(function () {
@@ -46,11 +42,37 @@ window.addEventListener("load", async function (event) {
             clearInterval(checkExist);
         }
         const listingRemovedButton = document.querySelector(listingRemovedButtonSelector);
-        if(listingRemovedButton){
+        if(listingRemovedButton || isListingSoldUrl() ){
             clearInterval(checkExist);
+            runMultipleTimesUntilTrue(async () => {
+                const isSaved = await getIsListingSavedInStorage();
+                if(isSaved){
+                    renderFloatingHiboButton(); //TODO: Add new content script popup before able to show button
+                    return true;
+                }
+                return false;
+            }, 10, 500)
         }
     }, 100); // check every 100ms
 });
+
+function isListingSoldUrl(){
+    return !!(location.href.match("/salda"))
+}
+
+function runMultipleTimesUntilTrue(localFunction, maxTimes, timeBetween){
+    var timesRun = 0;
+    var interval = setInterval(async function(){
+        timesRun += 1;
+        if(timesRun === maxTimes){
+            clearInterval(interval);
+        }
+        const isTrue = await localFunction();
+        if(isTrue){
+            clearInterval(interval);
+        }
+    }, timeBetween); 
+}
 
 /** A very sketchy way to retrieve the property-id of a hemnet listing. Using script innerHTML and regex. */
 function getPropertyId(){

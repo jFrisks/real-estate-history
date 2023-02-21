@@ -6,12 +6,12 @@
     width: 75px;
     height: 75px;
     bottom: 2vw;
-    left: 90vw;
+    left: calc(98vw - 75px);
     border-radius: 50%;
     /* box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px; */
-    box-shadow: 1px 1px 16px 0px rgba(0,0,0,0.4);
-    -webkit-box-shadow: 1px 1px 16px 0px rgba(0,0,0,0.4);
-    -moz-box-shadow: 1px 1px 16px 0px rgba(0,0,0,0.4);
+    box-shadow: 1px 1px 16px 0px rgba(0,0,0,0.2);
+    -webkit-box-shadow: 1px 1px 16px 0px rgba(0,0,0,0.2);
+    -moz-box-shadow: 1px 1px 16px 0px rgba(0,0,0,0.2);
     text-align: center;
     align-items: center;
     transition: background-color 0.2s ease-out 100ms;
